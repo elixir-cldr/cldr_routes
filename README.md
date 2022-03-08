@@ -1,6 +1,6 @@
-# CldrRoutes
+# Cldr Routes
 
-**TODO: Add description**
+CLDR-based route generator and path helper generator.
 
 ## Installation
 
