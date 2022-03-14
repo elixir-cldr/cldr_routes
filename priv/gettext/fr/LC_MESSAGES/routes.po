@@ -1,0 +1,5 @@
+msgid "pages"
+msgstr "pages_fr"
+
+msgid "users"
+msgstr "users_fr"

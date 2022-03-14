@@ -1,0 +1,14 @@
+#, ex-autogen, icu-format
+#: mix/my_app_gettext_use.ex:8
+msgid "Goodbye {name}!"
+msgstr ""
+
+#, ex-autogen, icu-format
+#: mix/my_app_gettext_use.ex:11
+msgid "Hello {name}!"
+msgstr ""
+
+#, ex-autogen, icu-format
+#: mix/my_app_gettext_use.ex:14
+msgid "This is your {count, number, ordinal} jab"
+msgstr "This is your {count, number, ordinal} jab"

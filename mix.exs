@@ -5,8 +5,9 @@ defmodule CldrRoutes.MixProject do
     [
       app: :cldr_routes,
       version: "0.1.0",
-      elixir: "~> 1.13",
+      elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
+      mix_compilers: [:gettext] ++ Mix.compilers(),
       deps: deps()
     ]
   end
@@ -21,8 +22,10 @@ defmodule CldrRoutes.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:ex_cldr, "~> 2.27"},
+      {:phoenix, "~> 1.6"},
+      {:jason, "~> 1.0"},
+      {:gettext, "~> 0.19"}
     ]
   end
 end
