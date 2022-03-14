@@ -3,6 +3,6 @@ defmodule MyApp.Cldr do
     locales: ["en", "fr"],
     default_locale: "en",
     gettext: MyAppWeb.Gettext,
-    providers: []
+    providers: [Cldr.Routes]
 
 end

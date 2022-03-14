@@ -3,3 +3,9 @@ msgstr "pages_fr"
 
 msgid "users"
 msgstr "users_fr"
+
+msgid "edit"
+msgstr "edit_fr"
+
+msgid "objects"
+msgstr "objects_fr"
