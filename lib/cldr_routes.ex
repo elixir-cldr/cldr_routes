@@ -130,23 +130,21 @@ defmodule Cldr.Routes do
     end
   end
 
-  # Here we'll generate the help module that wraps the
+  # Here we'll generate the helper module that wraps the
   # standard Phoenix path and url helpers.  Things to
   # note:
   #
-  # 1. We need to know if a route has been generated
-  #    as a localised route otherwise we will generate
-  #    suprious functions. Perhaps annotate the assigns
-  #    "temporarily" in the module attribute?
-  #
-  # 2. For each localized route, break apart the path
-  #    so we know which parts need translation and which don't.
-  #
-  # 3. Use the gettext macros to do the translation at
-  #    compile time
+  # 1. Currently we save the gettext locale in assigns.
+  #    Should it be the cldr locale name? (Probably)
+  # 2. And then generate helpers where there is a locale
+  #    configured in assigns
+  # 3. Should we attempt to translate "edit" and "new"?
+  #    They aren't typically entered by end users but
+  #    it is a bit jarring to see them in english for
+  #    other locales.
 
   defmacro __before_compile__(_env) do
-    # env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse |> IO.inspect
+    #env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse |> IO.inspect
     # Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1)}) |> IO.inspect
     nil
   end
@@ -196,11 +194,13 @@ defmodule Cldr.Routes do
 
     for locale_name <- locale_names do
       translated_path = Cldr.Routes.translated_path(path, gettext_backend, locale_name)
+      args = Cldr.Routes.add_route_locale(args, locale_name)
       {verb, meta, [translated_path | args]}
     end
     |> Enum.uniq()
   end
 
+  @doc false
   def translated_path(path, gettext_backend, locale) do
     Gettext.put_locale(gettext_backend, locale)
 
@@ -213,6 +213,53 @@ defmodule Cldr.Routes do
   defp translate_part(_gettext_backend, "" = part), do: part
   defp translate_part(_gettext_backend, @interpolate <> _rest = part), do: part
   defp translate_part(gettext_backend, part), do: Gettext.dgettext(gettext_backend, @domain, part)
+
+  # Add an assign :route_gettext_locale that is the
+  # gettext locale for which this route was recognised.
+  # This can be used by application code to make localization
+  # decisions. Its also used to mark localised routes
+  # for path and url helper generation.
+
+  @doc false
+  def add_route_locale(args, locale) do
+    [last | rest] = Enum.reverse(args)
+
+    if options?(last) do
+      [put_route_locale(last, locale) | rest]
+    else
+      [put_route_locale(nil, locale), last | rest]
+    end
+    |> Enum.reverse()
+  end
+
+  defp options?(arg) do
+    Keyword.keyword?(arg)
+  end
+
+  # Keyword list
+  defp put_route_locale([{key, _value} | _rest] = options, locale) when is_atom(key) do
+    {assigns, options} = Keyword.pop(options, :assigns)
+    Keyword.put(options, :assigns, put_locale(assigns, locale))
+  end
+
+  # Not a keyword list - fabricate one
+  defp put_route_locale(nil, locale) do
+    quote do
+      [assigns: %{route_gettext_locale: unquote(locale)}]
+    end
+  end
+
+  # No assigns, so fabricate one
+  defp put_locale(nil, locale) do
+    quote do
+      %{route_gettext_locale: unquote(locale)}
+    end
+  end
+
+  # Existing assigns, add to them
+  defp put_locale({:%{}, meta, list}, locale) do
+    {:%{}, meta, [{:route_gettext_locale, locale} | list]}
+  end
 end
 
 
