@@ -249,29 +249,29 @@ defmodule Cldr.Routes do
   def add_route_locale(args, locale) do
     [last | rest] = Enum.reverse(args)
 
-    if options?(last) do
-      [put_route_locale(last, locale) | rest]
-    else
-      [put_route_locale(nil, locale), last | rest]
-    end
+    last
+    |> put_route_locale(locale)
+    |> combine(rest)
     |> Enum.reverse()
   end
 
-  defp options?(arg) do
-    Keyword.keyword?(arg)
-  end
+  defp combine(first, rest) when is_list(first), do: first ++ rest
+  defp combine(first, rest), do: [first | rest]
 
-  # Keyword list
+  # Keyword list of options - add update or add :assigns
   defp put_route_locale([{key, _value} | _rest] = options, locale) when is_atom(key) do
     {assigns, options} = Keyword.pop(options, :assigns)
     Keyword.put(options, :assigns, put_locale(assigns, locale))
   end
 
   # Not a keyword list - fabricate one
-  defp put_route_locale(nil, locale) do
-    quote do
-      [assigns: %{route_gettext_locale: unquote(locale)}]
-    end
+  defp put_route_locale(last, locale) do
+    options =
+      quote do
+        [assigns: %{route_gettext_locale: unquote(locale)}]
+      end
+
+    [options, last]
   end
 
   # No assigns, so fabricate one
@@ -286,5 +286,3 @@ defmodule Cldr.Routes do
     {:%{}, meta, [{:route_gettext_locale, locale} | list]}
   end
 end
-
-
