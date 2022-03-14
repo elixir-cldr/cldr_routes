@@ -111,12 +111,14 @@ defmodule Cldr.Routes do
     quote location: :keep, bind_quoted: [backend: backend, gettext: gettext] do
       defmodule Routes do
         defmacro __using__(opts) do
+          Cldr.Routes.confirm_backend_has_gettext!(unquote(backend))
           caller = __CALLER__.module
 
           locales =
             unquote(backend).known_gettext_locale_names()
             |> Enum.map(&Cldr.Config.locale_name_to_posix/1)
 
+          Module.put_attribute(caller, :_cldr_backend, unquote(backend))
           Module.put_attribute(caller, :_gettext_locale_names, locales)
           Module.put_attribute(caller, :_gettext_module, unquote(gettext))
 
@@ -128,6 +130,29 @@ defmodule Cldr.Routes do
         end
       end
     end
+  end
+
+  @doc false
+  def confirm_backend_has_gettext!(backend) do
+    confirm_backend_has_gettext!(backend, backend.__cldr__(:config))
+  end
+
+  @doc false
+  def confirm_backend_has_gettext!(backend, %Cldr.Config{gettext: nil}) do
+    raise ArgumentError,
+    """
+    The Cldr backend #{inspect backend} does not have a Gettext
+    module configured.
+
+    A Gettext module must be configured in order to define localized
+    routes. In addition, translations must be provided for the Gettext
+    backend under the "routes" domain (ie in a file "routes.pot" for
+    each configured Gettext locale).
+    """
+  end
+
+  def confirm_backend_has_gettext!(_backend, %Cldr.Config{} = _config) do
+    :ok
   end
 
   # Here we'll generate the helper module that wraps the
