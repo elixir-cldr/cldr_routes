@@ -30,8 +30,10 @@ defmodule Cldr.Routes do
   Path parts (the parts between "/") are translated
   at compile time using `Gettext`. Therefore localization
   can only be applied to locales that are defined in
-  a [gettext backend module]() that is configured in
-  a `Cldr` backend module.  For example:
+  a [gettext backend module](https://hexdocs.pm/gettext/Gettext.html#module-using-gettext)
+  that is configured in a `Cldr` backend module.
+
+  For example:
 
   ```elixir
   defmodule MyApp.Cldr do
