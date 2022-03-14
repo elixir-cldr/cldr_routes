@@ -110,6 +110,8 @@ defmodule Cldr.Routes do
 
     quote location: :keep, bind_quoted: [backend: backend, gettext: gettext] do
       defmodule Routes do
+        @moduledoc false
+
         defmacro __using__(opts) do
           Cldr.Routes.confirm_backend_has_gettext!(unquote(backend))
           caller = __CALLER__.module
@@ -176,7 +178,7 @@ defmodule Cldr.Routes do
 
   @doc """
   Generates localised routes for each locale defined in a
-  CLDR backend.
+  Cldr backend.
 
   This macro is intended to wrap a series of standard
   route definitiosn in a `do` block. For example:
@@ -258,7 +260,7 @@ defmodule Cldr.Routes do
   defp combine(first, rest) when is_list(first), do: first ++ rest
   defp combine(first, rest), do: [first | rest]
 
-  # Keyword list of options - add update or add :assigns
+  # Keyword list of options - update or add :assigns
   defp put_route_locale([{key, _value} | _rest] = options, locale) when is_atom(key) do
     {assigns, options} = Keyword.pop(options, :assigns)
     Keyword.put(options, :assigns, put_locale(assigns, locale))
