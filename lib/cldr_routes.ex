@@ -225,13 +225,12 @@ defmodule Cldr.Routes do
         args = Cldr.Routes.add_route_locale(args, cldr_locale)
         {verb, meta, [translated_path | args]}
       else
-        IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a related Gettext locale name." <>
-          " No localized routes will be generated for this locale."
-        nil
+        IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a known Gettext locale name." <>
+          " No localized routes will be generated for #{inspect path}", []
+        {verb, meta, [path | args]}
       end
     end
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
+    |> Enum.uniq_by(&canonical_route/1)
   end
 
   @doc false
@@ -248,7 +247,7 @@ defmodule Cldr.Routes do
   defp translate_part(_gettext_backend, @interpolate <> _rest = part), do: part
   defp translate_part(gettext_backend, part), do: Gettext.dgettext(gettext_backend, @domain, part)
 
-  # Add an assign :route_gettext_locale that is the
+  # Add an assign :cldr_locale that is the
   # gettext locale for which this route was recognised.
   # This can be used by application code to make localization
   # decisions. Its also used to mark localised routes
@@ -277,7 +276,7 @@ defmodule Cldr.Routes do
   defp put_route_locale(last, locale) do
     options =
       quote do
-        [assigns: %{route_gettext_locale: unquote(Macro.escape(locale))}]
+        [assigns: %{cldr_locale: unquote(Macro.escape(locale))}]
       end
 
     [options, last]
@@ -286,12 +285,22 @@ defmodule Cldr.Routes do
   # No assigns, so fabricate one
   defp put_locale(nil, locale) do
     quote do
-      %{route_gettext_locale: unquote(Macro.escape(locale))}
+      %{cldr_locale: unquote(Macro.escape(locale))}
     end
   end
 
   # Existing assigns, add to them
   defp put_locale({:%{}, meta, list}, locale) do
-    {:%{}, meta, [{:route_gettext_locale, Macro.escape(locale)} | list]}
+    {:%{}, meta, [{:cldr_locale, Macro.escape(locale)} | list]}
   end
+
+  # Testing uniqeiness of a routez excluding options
+  defp canonical_route({verb, meta, [path, controller, action | _args]}) when is_atom(action) do
+    {verb, meta, [path, controller, action]}
+  end
+
+  defp canonical_route({verb, meta, [path, controller | _args]}) do
+    {verb, meta, [path, controller]}
+  end
+
 end
