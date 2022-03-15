@@ -121,8 +121,6 @@ defmodule Cldr.Routes do
             |> Enum.map(&Cldr.Config.locale_name_to_posix/1)
 
           Module.put_attribute(caller, :_cldr_backend, unquote(backend))
-          Module.put_attribute(caller, :_gettext_locale_names, locales)
-          Module.put_attribute(caller, :_gettext_module, unquote(gettext))
 
           quote do
             require Cldr.Routes
@@ -171,7 +169,7 @@ defmodule Cldr.Routes do
   #    other locales.
 
   defmacro __before_compile__(_env) do
-    #env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse |> IO.inspect
+    # env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse |> IO.inspect
     # Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1)}) |> IO.inspect
     nil
   end
@@ -216,14 +214,23 @@ defmodule Cldr.Routes do
   end
 
   defmacro localize({verb, meta, [path | args]}) do
-    gettext_backend = Module.get_attribute(__CALLER__.module, :_gettext_module)
-    locale_names =  Module.get_attribute(__CALLER__.module, :_gettext_locale_names)
+    cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
+    gettext_backend = cldr_backend.__cldr__(:config).gettext
 
-    for locale_name <- locale_names do
-      translated_path = Cldr.Routes.translated_path(path, gettext_backend, locale_name)
-      args = Cldr.Routes.add_route_locale(args, locale_name)
-      {verb, meta, [translated_path | args]}
+    for cldr_locale_name <- cldr_backend.known_locale_names() do
+      {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)
+
+      if cldr_locale.gettext_locale_name do
+        translated_path = Cldr.Routes.translated_path(path, gettext_backend, cldr_locale.gettext_locale_name)
+        args = Cldr.Routes.add_route_locale(args, cldr_locale)
+        {verb, meta, [translated_path | args]}
+      else
+        IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a related Gettext locale name." <>
+          " No localized routes will be generated for this locale."
+        nil
+      end
     end
+    |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
   end
 
@@ -270,7 +277,7 @@ defmodule Cldr.Routes do
   defp put_route_locale(last, locale) do
     options =
       quote do
-        [assigns: %{route_gettext_locale: unquote(locale)}]
+        [assigns: %{route_gettext_locale: unquote(Macro.escape(locale))}]
       end
 
     [options, last]
@@ -279,12 +286,12 @@ defmodule Cldr.Routes do
   # No assigns, so fabricate one
   defp put_locale(nil, locale) do
     quote do
-      %{route_gettext_locale: unquote(locale)}
+      %{route_gettext_locale: unquote(Macro.escape(locale))}
     end
   end
 
   # Existing assigns, add to them
   defp put_locale({:%{}, meta, list}, locale) do
-    {:%{}, meta, [{:route_gettext_locale, locale} | list]}
+    {:%{}, meta, [{:route_gettext_locale, Macro.escape(locale)} | list]}
   end
 end
