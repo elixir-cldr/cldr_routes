@@ -7,6 +7,9 @@ msgstr "users_fr"
 msgid "faces"
 msgstr "faces_fr"
 
+msgid "eyes"
+msgstr "eyes_fr"
+
 msgid "edit"
 msgstr "edit_fr"
 

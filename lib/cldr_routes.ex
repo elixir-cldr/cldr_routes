@@ -197,7 +197,7 @@ defmodule Cldr.Routes do
     translated_routes =
       for route <- routes do
         quote do
-          localize(unquote(route))
+          localize([do: unquote(route)])
         end
       end
 
@@ -205,17 +205,49 @@ defmodule Cldr.Routes do
   end
 
   defmacro localize([do: route]) do
+    cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
+
+    for cldr_locale_name <- cldr_backend.known_locale_names(),
+        {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name) do
+      if cldr_locale.gettext_locale_name do
+        quote do
+          localize(unquote(cldr_locale), unquote(route))
+        end
+      else
+        {_fun, _meta, [path, _controller, _args]} = route
+        IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a known gettext locale." <>
+          " No #{inspect cldr_locale_name} localized routes will be generated for #{inspect path}", []
+        nil
+      end
+    end
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq_by(&canonical_route/1)
+  end
+
+  defmacro localize(locale, [do: {:__block__, meta, routes}]) do
+    translated_routes =
+      for route <- routes do
+        quote do
+          localize(unquote(locale), [do: unquote(route)])
+        end
+      end
+
+    {:__block__, meta, translated_routes}
+  end
+
+  defmacro localize(locale, [do: route]) do
     quote do
-      localize(unquote(route))
+      localize(unquote(locale), unquote(route))
     end
   end
 
-  # Rerwrite nested resources
-  defmacro localize({:resources, _meta, [path, controller, [do: {fun, _, _args}] = nested_resource]}) when fun != :localize do
+  # Rerwrite nested resources; guard against infinite recursion by not
+  #
+  defmacro localize(locale, {:resources, _meta, [path, controller, [do: {fun, _, _args}] = nested_resource]}) when fun != :localize do
     quote do
-      localize do
+      localize unquote(locale) do
         resources unquote(path), unquote(controller) do
-          localize do
+          localize unquote(locale) do
             unquote(nested_resource)
           end
         end
@@ -223,24 +255,20 @@ defmodule Cldr.Routes do
     end
   end
 
-  defmacro localize({verb, meta, [path | args]}) do
+  defmacro localize(cldr_locale_name, {verb, meta, [path | args]}) do
     cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
     gettext_backend = cldr_backend.__cldr__(:config).gettext
+    {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)
 
-    for cldr_locale_name <- cldr_backend.known_locale_names() do
-      {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)
-
-      if cldr_locale.gettext_locale_name do
-        translated_path = Cldr.Routes.translated_path(path, gettext_backend, cldr_locale.gettext_locale_name)
-        args = Cldr.Routes.add_route_locale(args, cldr_locale)
-        {verb, meta, [translated_path | args]}
-      else
-        IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a known gettext locale." <>
-          " No #{inspect cldr_locale_name} localized routes will be generated for #{inspect path}", []
-        {verb, meta, [path | args]}
-      end
+    if cldr_locale.gettext_locale_name do
+      translated_path = Cldr.Routes.translated_path(path, gettext_backend, cldr_locale.gettext_locale_name)
+      args = Cldr.Routes.add_route_locale(args, cldr_locale)
+      {verb, meta, [translated_path | args]}
+    else
+      IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a known gettext locale." <>
+        " No #{inspect cldr_locale_name} localized routes will be generated for #{inspect path}", []
+      {verb, meta, [path | args]}
     end
-    |> Enum.uniq_by(&canonical_route/1)
   end
 
   @doc false
@@ -324,6 +352,10 @@ defmodule Cldr.Routes do
 
   defp canonical_route({verb, meta, [path, controller | _args]}) do
     {verb, meta, [path, controller]}
+  end
+
+  defp canonical_route({:localize, _, [[do: {verb, meta, [path, controller, action]}]]}) when is_atom(action) do
+    {verb, meta, [path, controller, action]}
   end
 
 end
