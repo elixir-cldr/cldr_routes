@@ -168,10 +168,14 @@ defmodule Cldr.Routes do
   #    it is a bit jarring to see them in english for
   #    other locales.
 
-  defmacro __before_compile__(_env) do
-    # env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse |> IO.inspect
-    # Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1)}) |> IO.inspect
-    nil
+  defmacro __before_compile__(env) do
+    routes = env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse
+    routes_with_exprs = Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1)})
+    gettext_backend = Module.get_attribute(env.module, :_cldr_backend).__cldr__(:config).gettext
+    helpers_moduledoc = Module.get_attribute(env.module, :helpers_moduledoc)
+
+    Cldr.Routes.LocalizedHelpers.define(env, routes_with_exprs, docs: helpers_moduledoc, gettext: gettext_backend)
+    []
   end
 
   @doc """
@@ -206,10 +210,16 @@ defmodule Cldr.Routes do
     end
   end
 
-  # For nested resources
-  defmacro localize({:resources, meta, [path, aliases, [do: nested_resource]]}) do
+  # Rerwrite nested resources
+  defmacro localize({:resources, _meta, [path, controller, [do: {fun, _, _args}] = nested_resource]}) when fun != :localize do
     quote do
-      unquote({:resources, meta, [path, aliases, [do: {:localize, [], [nested_resource]}]]})
+      localize do
+        resources unquote(path), unquote(controller) do
+          localize do
+            unquote(nested_resource)
+          end
+        end
+      end
     end
   end
 
@@ -225,8 +235,8 @@ defmodule Cldr.Routes do
         args = Cldr.Routes.add_route_locale(args, cldr_locale)
         {verb, meta, [translated_path | args]}
       else
-        IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a known Gettext locale name." <>
-          " No localized routes will be generated for #{inspect path}", []
+        IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a known gettext locale." <>
+          " No #{inspect cldr_locale_name} localized routes will be generated for #{inspect path}", []
         {verb, meta, [path | args]}
       end
     end
@@ -253,18 +263,31 @@ defmodule Cldr.Routes do
   # decisions. Its also used to mark localised routes
   # for path and url helper generation.
 
+  # When inserting the assigns, make sure to keep any
+  # do: block in the correct place
+
   @doc false
   def add_route_locale(args, locale) do
-    [last | rest] = Enum.reverse(args)
+    case Enum.reverse(args) do
+      [[do: block], last | rest] ->
+        last
+        |> put_route_locale(locale)
+        |> combine(rest, [do: block])
+        |> Enum.reverse()
 
-    last
-    |> put_route_locale(locale)
-    |> combine(rest)
-    |> Enum.reverse()
+      [last | rest] ->
+        last
+        |> put_route_locale(locale)
+        |> combine(rest)
+        |> Enum.reverse()
+    end
   end
 
   defp combine(first, rest) when is_list(first), do: first ++ rest
   defp combine(first, rest), do: [first | rest]
+
+  defp combine(first, rest, block) when is_list(first), do: [block | first ++ rest]
+  defp combine(first, rest, block), do: [block, first | rest]
 
   # Keyword list of options - update or add :assigns
   defp put_route_locale([{key, _value} | _rest] = options, locale) when is_atom(key) do

@@ -4,6 +4,8 @@ defmodule MyApp.Router do
 
   localize do
     get "/pages/:page", PageController, :show
-    resources "/users", UserController
+    resources "/users", UserController do
+      resources "/faces", UserController
+    end
   end
 end
