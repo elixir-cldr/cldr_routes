@@ -1,5 +1,9 @@
 defmodule Cldr.Routes.LocalizedHelpers do
   # Module that generates the routing helpers.
+  # This version is forked from the Phoenix default
+  # version to generate localized paths based
+  # upon gettext translations.
+
   @moduledoc false
 
   alias Phoenix.Router.Route

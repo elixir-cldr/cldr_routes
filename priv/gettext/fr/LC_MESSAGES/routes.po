@@ -15,3 +15,6 @@ msgstr "edit_fr"
 
 msgid "objects"
 msgstr "objects_fr"
+
+msgid "chapters"
+msgstr "chapters_fr"
