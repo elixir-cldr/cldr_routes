@@ -121,7 +121,6 @@ defmodule Cldr.Routes do
           Module.put_attribute(caller, :_cldr_backend, unquote(backend))
 
           quote do
-            require Cldr.Routes
             import Cldr.Routes, only: :macros
             @before_compile Cldr.Routes
           end
