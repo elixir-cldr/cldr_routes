@@ -173,10 +173,9 @@ defmodule Cldr.Routes do
   defmacro __before_compile__(env) do
     routes = env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse
     routes_with_exprs = Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1)})
-    gettext_backend = Module.get_attribute(env.module, :_cldr_backend).__cldr__(:config).gettext
     helpers_moduledoc = Module.get_attribute(env.module, :helpers_moduledoc)
 
-    Cldr.Routes.LocalizedHelpers.define(env, routes_with_exprs, docs: helpers_moduledoc, gettext: gettext_backend)
+    Cldr.Routes.LocalizedHelpers.define(env, routes_with_exprs, docs: helpers_moduledoc)
     []
   end
 
