@@ -105,6 +105,10 @@ iex> MyApp.Router.LocalizedHelpers.page_path %Plug.Conn{}, :show, 1
 
 ```
 
+## Assigns
+
+For each localized path, the Cldr locale is added to the `:assigns` for the route under the `:cldr_locale` key. This allows the developer to recognise which locale was used to generate the localized route.
+
 ## Installation
 
 The package can be installed by adding `ex_cldr_routes` to your list of dependencies in `mix.exs`:
