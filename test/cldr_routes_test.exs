@@ -1,8 +1,8 @@
-defmodule CldrRoutesTest do
+defmodule Cldr.Route.Test do
   use ExUnit.Case
   use Plug.Test
 
-  doctest Cldr.Routes
+  doctest Cldr.Route
   doctest MyApp.Router.LocalizedHelpers
 
   describe "Routes" do

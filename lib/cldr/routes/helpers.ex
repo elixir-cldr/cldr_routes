@@ -1,4 +1,4 @@
-defmodule Cldr.Routes.LocalizedHelpers do
+defmodule Cldr.Route.LocalizedHelpers do
   # Module that generates the routing helpers.
   # This version is forked from the Phoenix default
   # version to generate localized paths based
@@ -205,7 +205,7 @@ defmodule Cldr.Routes.LocalizedHelpers do
       Module with named helpers generated from #{inspect unquote(env.module)}.
 
       This module provides localized helpers. Routes that are generated in
-      the scope of the `Cldr.Routes.localize/1` macro also generate
+      the scope of the `Cldr.Route.localize/1` macro also generate
       localized path helpers in this module.
 
       For example:
@@ -227,14 +227,14 @@ defmodule Cldr.Routes.LocalizedHelpers do
       Generates the path information including any necessary prefix.
       """
       def path(data, path) do
-        Cldr.Routes.LocalizedHelpers.path(unquote(env.module), data, path)
+        Cldr.Route.LocalizedHelpers.path(unquote(env.module), data, path)
       end
 
       @doc """
       Generates the connection/endpoint base URL without any path information.
       """
       def url(data) do
-        Cldr.Routes.LocalizedHelpers.url(unquote(env.module), data)
+        Cldr.Route.LocalizedHelpers.url(unquote(env.module), data)
       end
 
       @doc """

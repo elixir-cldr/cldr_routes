@@ -1,10 +1,10 @@
-require Cldr.Routes
+require Cldr.Route
 
 defmodule MyApp.Cldr do
   use Cldr,
     locales: ["en", "fr"],
     default_locale: "en",
     gettext: MyAppWeb.Gettext,
-    providers: [Cldr.Routes]
+    providers: [Cldr.Route]
 
 end

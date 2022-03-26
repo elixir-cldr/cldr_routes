@@ -1,7 +1,11 @@
 # Cldr Routes
+![Build Status](http://sweatbox.noexpectations.com.au:8080/buildStatus/icon?job=cldr_routes)
+[![Hex.pm](https://img.shields.io/hexpm/v/ex_cldr_routes.svg)](https://hex.pm/packages/ex_cldr_routes)
+[![Hex.pm](https://img.shields.io/hexpm/dw/ex_cldr_routes.svg?)](https://hex.pm/packages/ex_cldr_routes)
+[![Hex.pm](https://img.shields.io/hexpm/dt/ex_cldr_routes.svg?)](https://hex.pm/packages/ex_cldr_routes)
+[![Hex.pm](https://img.shields.io/hexpm/l/ex_cldr_routes.svg)](https://hex.pm/packages/ex_cldr_routes)
 
-Generate localized routes and route helper
-modules.
+Generate localized routes and route helper modules.
 
 This module when `use`d , provides a `localize/1` macro that is designed to wrap the standard Phoenix route macros such as `get/3`, `put/3` and `resources/3` and localises them for each locale defined in a Gettext backend module attached to a Cldr backend module.
 
@@ -30,12 +34,12 @@ end
 
 Here the `MyApp.Cldr` backend module is used to instrospect the configured locales in order to drive the localization generation.
 
-Next, configure the router module to use the `localize/1` macro by adding `use MyApp.Cldr.Routes` to the module and invoke the `localize/1` macro to wrap the required routes. For example:
+Next, configure the router module to use the `localize/1` macro by adding `use MyApp.Cldr.Route` to the module and invoke the `localize/1` macro to wrap the required routes. For example:
 
 ```elixir
 defmodule MyApp.Router do
   use Phoenix.Router
-  use MyApp.Cldr.Routes
+  use MyApp.Cldr.Route
 
   localize do
     get "/pages/:page", PageController, :show
@@ -116,7 +120,7 @@ The package can be installed by adding `ex_cldr_routes` to your list of dependen
 ```elixir
 def deps do
   [
-    {:ex_cldr_routes, "~> 0.1.0"}
+    {:ex_cldr_routes, "~> 0.2.0"}
   ]
 end
 ```

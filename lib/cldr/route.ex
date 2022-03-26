@@ -1,4 +1,4 @@
-defmodule Cldr.Routes do
+defmodule Cldr.Route do
   @moduledoc """
   Generate localized routes and route helper
   modules.
@@ -41,7 +41,7 @@ defmodule Cldr.Routes do
       locales: ["en", "fr"],
       default_locale: "en".
       gettext: MyApp.Gettext
-      providers: [Cldr.Routes]
+      providers: [Cldr.Route]
 
   end
   ```
@@ -53,14 +53,14 @@ defmodule Cldr.Routes do
 
   Next, configure the router module to
   use the `localize/1` macro by adding
-  `use MyApp.Cldr.Routes` to the module and invoke
+  `use MyApp.Cldr.Route` to the module and invoke
   the `localize/1` macro to wrap the required
   routes. For example:
 
   ```elixir
   defmodule MyApp.Router do
     use Phoenix.Router
-    use MyApp.Cldr.Routes
+    use MyApp.Cldr.Route
 
     localize do
       get "/pages/:page", PageController, :show
@@ -146,14 +146,14 @@ defmodule Cldr.Routes do
         @moduledoc false
 
         defmacro __using__(opts) do
-          Cldr.Routes.confirm_backend_has_gettext!(unquote(backend))
+          Cldr.Route.confirm_backend_has_gettext!(unquote(backend))
           caller = __CALLER__.module
 
           Module.put_attribute(caller, :_cldr_backend, unquote(backend))
 
           quote do
-            import Cldr.Routes, only: :macros
-            @before_compile Cldr.Routes
+            import Cldr.Route, only: :macros
+            @before_compile Cldr.Route
           end
         end
       end
@@ -194,7 +194,7 @@ defmodule Cldr.Routes do
     routes_with_exprs = Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1)})
     helpers_moduledoc = Module.get_attribute(env.module, :helpers_moduledoc)
 
-    Cldr.Routes.LocalizedHelpers.define(env, routes_with_exprs, docs: helpers_moduledoc)
+    Cldr.Route.LocalizedHelpers.define(env, routes_with_exprs, docs: helpers_moduledoc)
     []
   end
 
@@ -268,10 +268,7 @@ defmodule Cldr.Routes do
             localize(unquote(cldr_locale), unquote(route))
           end
         else
-          {verb, _meta, [path, _controller, _args]} = route
-          IO.warn "No known gettext locale for #{inspect cldr_locale_name}. " <>
-            "No #{inspect cldr_locale_name} localized routes will be generated for #{inspect verb} #{inspect path}", []
-          nil
+          warn_no_gettext_locale(cldr_locale_name, route)
         end
       else
         {:error, {exception, reason}} -> raise exception, reason
@@ -320,8 +317,8 @@ defmodule Cldr.Routes do
     {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)
 
     if cldr_locale.gettext_locale_name do
-      translated_path = Cldr.Routes.translated_path(path, gettext_backend, cldr_locale.gettext_locale_name)
-      args = Cldr.Routes.add_route_locale_to_assigns(args, cldr_locale)
+      translated_path = Cldr.Route.translated_path(path, gettext_backend, cldr_locale.gettext_locale_name)
+      args = Cldr.Route.add_route_locale_to_assigns(args, cldr_locale)
       {verb, meta, [translated_path | args]}
     else
       IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a known gettext locale." <>
@@ -340,6 +337,13 @@ defmodule Cldr.Routes do
       Invalid route for localization: #{verb} #{inspect path}, #{inspect args}
       Allowed localizable routes are #{inspect @localizable_verbs}
       """
+  end
+
+  defp warn_no_gettext_locale(cldr_locale_name, route) do
+    {verb, _meta, [path, _controller, _args]} = route
+    IO.warn "No known gettext locale for #{inspect cldr_locale_name}. " <>
+      "No #{inspect cldr_locale_name} localized routes will be generated for #{inspect verb} #{inspect path}", []
+    nil
   end
 
   # Gettext requires we set the current process locale
@@ -396,7 +400,7 @@ defmodule Cldr.Routes do
   # Keyword list of options - update or add :assigns
   defp put_route_locale([{key, _value} | _rest] = options, locale) when is_atom(key) do
     {assigns, options} = Keyword.pop(options, :assigns)
-    options = [Keyword.put(options, :assigns, Cldr.Routes.put_locale(assigns, locale))]
+    options = [Keyword.put(options, :assigns, Cldr.Route.put_locale(assigns, locale))]
 
     quote do
       unquote(options)
