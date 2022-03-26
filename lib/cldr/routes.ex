@@ -3,11 +3,11 @@ defmodule Cldr.Routes do
   Generate localized routes and route helper
   modules.
 
-  This module when `use`d , generates a `localize/1`
+  This module when `use`d , provides a `localize/1`
   macro that is designed to wrap the standard Phoenix
   route macros such as `get/3`, `put/3` and `resources/3`
   and localises them for each locale defined in a Gettext
-  backend module attached to a CLDR backend module.
+  backend module attached to a Cldr backend module.
 
   Translations for the parts of a given route path are
   translated at compile-time which are then combined into
@@ -64,7 +64,7 @@ defmodule Cldr.Routes do
 
     localize do
       get "/pages/:page", PageController, :show
-      resources "/users", PageController
+      resources "/users", UsersController
     end
   end
   ```
@@ -96,6 +96,37 @@ defmodule Cldr.Routes do
               PUT     /users_fr/:id       UsersController :update
   users_path  DELETE  /users_fr/:id       UsersController :delete
   ```
+
+  ### Translations
+
+  In order for routes to be localized, translations must be
+  provided for each path segment. This translation is performed
+  by `Gettext.dgettext/3` with the domain "routes". Therefore for
+  each configured locale, a "routes.pot" file is required containing
+  the path segment translations for that locale.
+
+  Using the example Cldr backend that has "en" and "fr" Gettext
+  locales then the directory structure would look like the following
+  (if the default Gettext configuration is used):
+
+      priv/gettext
+      ├── default.pot
+      ├── en
+      │   └── LC_MESSAGES
+      │       ├── default.po
+      │       ├── errors.po
+      │       └── routes.po
+      ├── errors.pot
+      └── fr
+          └── LC_MESSAGES
+              ├── default.po
+              ├── errors.po
+              └── routes.po
+
+  Note that since the translations are performed with the functional
+  form at compile time, the message ids are not autoamtically
+  populated and must be manually added to the "routes.pot" file for
+  each locale.
 
   """
 
@@ -157,6 +188,7 @@ defmodule Cldr.Routes do
     @localizable_verbs
   end
 
+  @doc false
   defmacro __before_compile__(env) do
     routes = env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse
     routes_with_exprs = Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1)})
@@ -201,6 +233,20 @@ defmodule Cldr.Routes do
     end
   end
 
+  @doc """
+  Generates localised routes for each locale provided.
+
+  This macro is intended to wrap a series of standard
+  route definitiosn in a `do` block. For example:
+
+  ```elixir
+  localize [:en, :fr] do
+    get "/pages/:page", PageController, :show
+    resources "/users", UsersController
+  end
+  ```
+
+  """
   defmacro localize(cldr_locale_names, [do: {:__block__, meta, routes}]) when is_list(cldr_locale_names) do
     translated_routes =
       for route <- routes do
@@ -341,10 +387,10 @@ defmodule Cldr.Routes do
     end
   end
 
-  defp combine(first, rest) when is_list(first), do: first ++ rest
+  defp combine(first, rest) when is_list(first) and is_list(rest), do: first ++ rest
   defp combine(first, rest), do: [first | rest]
 
-  defp combine(first, rest, block) when is_list(first), do: [block | first ++ rest]
+  defp combine(first, rest, block) when is_list(first) and is_list(rest), do: [block | first ++ rest]
   defp combine(first, rest, block), do: [block, first | rest]
 
   # Keyword list of options - update or add :assigns

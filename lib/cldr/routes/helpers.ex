@@ -177,7 +177,7 @@ defmodule Cldr.Routes.LocalizedHelpers do
         end
 
         defp raise_route_error(unquote(helper), suffix, arity, action, params) do
-          Cldr.Routes.LocalizedHelpers.raise_route_error(
+          Phoenix.Router.Helpers.raise_route_error(
             __MODULE__,
             "#{unquote(helper)}_#{suffix}",
             arity,
@@ -203,6 +203,20 @@ defmodule Cldr.Routes.LocalizedHelpers do
     code = quote do
       @moduledoc unquote(docs) && """
       Module with named helpers generated from #{inspect unquote(env.module)}.
+
+      This module provides localized helpers. Routes that are generated in
+      the scope of the `Cldr.Routes.localize/1` macro also generate
+      localized path helpers in this module.
+
+      For example:
+      ```elixir
+      iex> MyApp.Router.LocalizedHelpers.page_path %Plug.Conn{}, :show, 1
+      "/pages/1"
+      iex> Gettext.put_locale MyAppWeb.Gettext, "fr"
+      iex> MyApp.Router.LocalizedHelpers.page_path %Plug.Conn{}, :show, 1
+      "/pages_fr/1"
+      ```
+
       """
       unquote(defhelper)
       unquote(defcatch_all)
@@ -362,49 +376,6 @@ defmodule Cldr.Routes.LocalizedHelpers do
         unquote(Macro.escape(routes))
       )
     end
-  end
-
-  @doc """
-  Callback for generate router catch alls.
-  """
-  def raise_route_error(mod, fun, arity, action, routes, params) do
-    cond do
-      is_atom(action) and not Keyword.has_key?(routes, action) ->
-        "no action #{inspect action} for #{inspect mod}.#{fun}/#{arity}"
-        |> invalid_route_error(fun, routes)
-
-      is_list(params) or is_map(params) ->
-        "no function clause for #{inspect mod}.#{fun}/#{arity} and action #{inspect action}"
-        |> invalid_route_error(fun, routes)
-
-      true ->
-        invalid_param_error(mod, fun, arity, action, routes)
-    end
-  end
-
-  defp invalid_route_error(prelude, fun, routes) do
-    suggestions =
-      for {action, bindings} <- routes do
-        bindings = Enum.join([inspect(action) | bindings], ", ")
-        "\n    #{fun}(conn_or_endpoint, #{bindings}, params \\\\ [])"
-      end
-
-    raise ArgumentError, "#{prelude}. The following actions/clauses are supported:\n#{suggestions}"
-  end
-
-  defp invalid_param_error(mod, fun, arity, action, routes) do
-    call_vars = Keyword.fetch!(routes, action)
-
-    raise ArgumentError, """
-    #{inspect(mod)}.#{fun}/#{arity} called with invalid params.
-    The last argument to this function should be a keyword list or a map.
-    For example:
-
-        #{fun}(#{Enum.join(["conn", ":#{action}" | call_vars], ", ")}, page: 5, per_page: 10)
-
-    It is possible you have called this function without defining the proper
-    number of path segments in your router.
-    """
   end
 
   @doc """

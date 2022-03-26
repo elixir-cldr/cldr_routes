@@ -1,3 +1,5 @@
+require Cldr.Routes
+
 defmodule MyApp.Cldr do
   use Cldr,
     locales: ["en", "fr"],

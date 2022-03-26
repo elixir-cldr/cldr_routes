@@ -27,4 +27,8 @@ defmodule MyApp.Router do
     get "/chapters/:page", PageController, :show, as: "chap"
     put "/pages/:page", PageController, :update
   end
+
+  # Unlocalized route with translatable path
+  # elements so we can confirm there is no translation
+  get "/not_localized/:page", NotLocalizedController, :show
 end

@@ -1,15 +1,40 @@
 defmodule CldrRoutes.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+
   def project do
     [
-      app: :cldr_routes,
-      version: "0.1.0",
+      app: :ex_cldr_routes,
+      version: @version,
       elixir: "~> 1.10",
+      description: "CLDR-based localized route generation and path helpers for Phoenix",
+      build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
-      mix_compilers: Mix.compilers(),
+      aliases: aliases(),
       elixirc_paths: elixirc_paths(Mix.env()),
-      deps: deps()
+      package: package(),
+      deps: deps(),
+
+      # Docs
+      name: "Cldr Routes",
+      source_url: "https://github.com/elixir-cldr/cldr_routes",
+      homepage_url: "https://hex.pm/packages/ex_cldr_routes",
+      docs: [
+        source_ref: "v#{@version}",
+        main: "readme",
+        logo: "logo.png",
+        extras: [
+          "README.md",
+          "LICENSE.md",
+          "CHANGELOG.md"
+        ]
+      ],
+
+      dialyzer: [
+        ignore_warnings: ".dialyzer_ignore_warnings",
+        plt_add_apps: ~w(jason mix)a
+      ],
     ]
   end
 
@@ -26,12 +51,41 @@ defmodule CldrRoutes.MixProject do
       {:ex_cldr, "~> 2.27"},
       {:phoenix, "~> 1.6"},
       {:jason, "~> 1.0"},
-      {:gettext, "~> 0.19"}
+      {:gettext, "~> 0.19"},
+      {:ex_doc, "~> 0.18", only: [:release, :dev]},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false, optional: true}
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "src", "dev", "mix/support/units", "mix/tasks", "test"]
-  defp elixirc_paths(:dev), do: ["lib", "mix", "src", "dev", "bench"]
-  defp elixirc_paths(:release), do: ["lib", "dev", "src"]
-  defp elixirc_paths(_), do: ["lib", "src"]
+  defp package do
+    [
+      licenses: ["Apache-2.0"],
+      maintainers: ["Kip Cole"],
+      links: links(),
+      files: [
+        "lib",
+        "mix.exs",
+        "README.md",
+        "LICENSE.md",
+        "CHANGELOG.md"
+      ]
+    ]
+  end
+
+  def aliases do
+    []
+  end
+
+  def links do
+    %{
+      "GitHub" => "https://github.com/elixir-cldr/cldr_routes",
+      "Readme" => "https://github.com/elixir-cldr/cldr_routes/blob/v#{@version}/README.md",
+      "Changelog" => "https://github.com/elixir-cldr/cldr_routes/blob/v#{@version}/CHANGELOG.md"
+    }
+  end
+
+  defp elixirc_paths(:test), do: ["lib", "src", "mix", "test"]
+  defp elixirc_paths(:dev), do: ["lib", "mix", "bench"]
+  defp elixirc_paths(:release), do: ["lib"]
+  defp elixirc_paths(_), do: ["lib"]
 end

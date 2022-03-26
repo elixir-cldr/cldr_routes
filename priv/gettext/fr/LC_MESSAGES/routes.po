@@ -21,3 +21,8 @@ msgstr "chapters_fr"
 
 msgid "comments"
 msgstr "comments_fr"
+
+# Translation for a route that should
+# never be translated
+msgid "not_localized"
+msgstr "not_localized_fr"
