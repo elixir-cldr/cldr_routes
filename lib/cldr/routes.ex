@@ -157,19 +157,6 @@ defmodule Cldr.Routes do
     @localizable_verbs
   end
 
-  # Here we'll generate the helper module that wraps the
-  # standard Phoenix path and url helpers.  Things to
-  # note:
-  #
-  # 1. Currently we save the gettext locale in assigns.
-  #    Should it be the cldr locale name? (Probably)
-  # 2. And then generate helpers where there is a locale
-  #    configured in assigns
-  # 3. Should we attempt to translate "edit" and "new"?
-  #    They aren't typically entered by end users but
-  #    it is a bit jarring to see them in english for
-  #    other locales.
-
   defmacro __before_compile__(env) do
     routes = env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse
     routes_with_exprs = Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1)})
@@ -214,6 +201,17 @@ defmodule Cldr.Routes do
     end
   end
 
+  defmacro localize(cldr_locale_names, [do: {:__block__, meta, routes}]) when is_list(cldr_locale_names) do
+    translated_routes =
+      for route <- routes do
+        quote do
+          localize(unquote(cldr_locale_names), [do: unquote(route)])
+        end
+      end
+
+    {:__block__, meta, translated_routes}
+  end
+
   defmacro localize(cldr_locale_names, [do: route]) when is_list(cldr_locale_names) do
     cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
 
@@ -225,8 +223,8 @@ defmodule Cldr.Routes do
           end
         else
           {verb, _meta, [path, _controller, _args]} = route
-          IO.warn "No known gettext locale for #{inspect cldr_locale_name}." <>
-            " No #{inspect cldr_locale_name} localized routes will be generated for #{inspect verb} #{inspect path}", []
+          IO.warn "No known gettext locale for #{inspect cldr_locale_name}. " <>
+            "No #{inspect cldr_locale_name} localized routes will be generated for #{inspect verb} #{inspect path}", []
           nil
         end
       else
@@ -236,8 +234,6 @@ defmodule Cldr.Routes do
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq_by(&canonical_route/1)
   end
-
-
 
   defmacro localize(locale, [do: {:__block__, meta, routes}]) do
     translated_routes =
@@ -256,8 +252,7 @@ defmodule Cldr.Routes do
     end
   end
 
-  # Rerwrite nested resources; guard against infinite recursion by not
-  #
+  # Rewrite nested resources; guard against infinite recursion
   defmacro localize(locale, {:resources, _meta, [path, controller, [do: {fun, _, _args}] = nested_resource]})
       when fun != :localize do
     quote do
@@ -271,15 +266,17 @@ defmodule Cldr.Routes do
     end
   end
 
+  # Do the actual translations
   defmacro localize(cldr_locale_name, {verb, meta, [path | args]})
       when verb in @localizable_verbs do
+
     cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
     gettext_backend = cldr_backend.__cldr__(:config).gettext
     {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)
 
     if cldr_locale.gettext_locale_name do
       translated_path = Cldr.Routes.translated_path(path, gettext_backend, cldr_locale.gettext_locale_name)
-      args = Cldr.Routes.add_route_locale(args, cldr_locale)
+      args = Cldr.Routes.add_route_locale_to_assigns(args, cldr_locale)
       {verb, meta, [translated_path | args]}
     else
       IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a known gettext locale." <>
@@ -288,6 +285,7 @@ defmodule Cldr.Routes do
     end
   end
 
+  # If the verb is unsupported for localization
   defmacro localize(_cldr_locale_name, {verb, _meta, [path |args]}) do
     {args, []} = Code.eval_quoted(args)
     args = Enum.map_join(args, ", ", &inspect/1)
@@ -295,9 +293,14 @@ defmodule Cldr.Routes do
     raise ArgumentError,
       """
       Invalid route for localization: #{verb} #{inspect path}, #{inspect args}
-      Allowed localizale routes are #{inspect @localizable_verbs}
+      Allowed localizable routes are #{inspect @localizable_verbs}
       """
   end
+
+  # Gettext requires we set the current process locale
+  # in order to translate. This might ordinarily disrupt
+  # any user set locale. However since this is only executed
+  # at compile time it does not affect runtime behaviour.
 
   @doc false
   def translated_path(path, gettext_backend, locale) do
@@ -323,7 +326,7 @@ defmodule Cldr.Routes do
   # do: block in the correct place
 
   @doc false
-  def add_route_locale(args, locale) do
+  def add_route_locale_to_assigns(args, locale) do
     case Enum.reverse(args) do
       [[do: block], last | rest] ->
         last
@@ -347,9 +350,11 @@ defmodule Cldr.Routes do
 
   # Keyword list of options - update or add :assigns
   defp put_route_locale([{key, _value} | _rest] = options, locale) when is_atom(key) do
+    {assigns, options} = Keyword.pop(options, :assigns)
+    options = [Keyword.put(options, :assigns, Cldr.Routes.put_locale(assigns, locale))]
+
     quote do
-      {assigns, options} = Keyword.pop(unquote(options), :assigns)
-      Keyword.put(options, :assigns, Cldr.Routes.put_locale(assigns, unquote(Macro.escape(locale))))
+      unquote(options)
     end
   end
 
@@ -366,12 +371,16 @@ defmodule Cldr.Routes do
   @doc false
   # No assigns, so fabricate one
   def put_locale(nil, locale) do
-    %{cldr_locale: locale}
+    quote do
+      %{cldr_locale: unquote(Macro.escape(locale))}
+    end
   end
 
   # Existing assigns, add to them
-  def put_locale(assigns, locale) do
-    Map.put(assigns, :cldr_locale, locale)
+  def put_locale({:%{}, _meta, _key_values} = assigns, locale) do
+    quote do
+      Map.put(unquote(assigns), :cldr_locale, unquote(Macro.escape(locale)))
+    end
   end
 
   # Testing uniqeiness of a routez excluding options

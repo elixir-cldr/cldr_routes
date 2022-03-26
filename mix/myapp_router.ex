@@ -11,8 +11,8 @@ defmodule MyApp.Router do
   end
 
   localize [:en, :fr] do
-    get "/pages/:page", PageController, :edit
-    # resources "/comments", PageController, except: [:delete]
+    resources "/comments", PageController, except: [:delete]
+    get "/pages/:page", PageController, :edit, assigns: %{key: :value}
   end
 
   localize do
