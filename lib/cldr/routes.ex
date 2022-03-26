@@ -269,7 +269,6 @@ defmodule Cldr.Routes do
   # Do the actual translations
   defmacro localize(cldr_locale_name, {verb, meta, [path | args]})
       when verb in @localizable_verbs do
-
     cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
     gettext_backend = cldr_backend.__cldr__(:config).gettext
     {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)

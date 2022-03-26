@@ -4,7 +4,6 @@ defmodule MyApp.Router do
 
   localize do
     get "/pages/:page", PageController, :show, assigns: %{key: :value}
-    get "/chapters/:page", PageController, :show, as: "chap"
     resources "/users", UserController do
       resources "/faces", UserController
     end
@@ -17,11 +16,15 @@ defmodule MyApp.Router do
 
   localize do
     get "/pages/:page", PageController, :show
-    put "/pages/:page", PageController, :update
     patch "/pages/:page", PageController, :update
     delete "/pages/:page", PageController, :delete
     post "/pages/:page", PageController, :create
     options "/pages/:page", PageController, :options
     head "/pages/:page", PageController, :head
+  end
+
+  localize "fr" do
+    get "/chapters/:page", PageController, :show, as: "chap"
+    put "/pages/:page", PageController, :update
   end
 end
