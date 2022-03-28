@@ -5,15 +5,15 @@
 [![Hex.pm](https://img.shields.io/hexpm/dt/ex_cldr_routes.svg?)](https://hex.pm/packages/ex_cldr_routes)
 [![Hex.pm](https://img.shields.io/hexpm/l/ex_cldr_routes.svg)](https://hex.pm/packages/ex_cldr_routes)
 
-Generate localized routes and route helper modules.
+Generate localized routes and a localized path helper module.
 
-This module when `use`d , provides a `localize/1` macro that is designed to wrap the standard Phoenix route macros such as `get/3`, `put/3` and `resources/3`. The routes are localised for each locale configured in a `Gettext` backend module that is attached to a `Cldr` backend module.
+This module when `use`d , provides a `localize/1` macro that is designed to wrap the standard [Phoenix route](https://hexdocs.pm/phoenix/routing.html) macros such as `get/3`, `put/3` and `resources/3`. The routes are localised for each locale configured in a `Gettext` backend module that is attached to a `Cldr` backend module.
 
 Translations for the parts of a given route path are performed at compile-time and are then combined into a localised route that is added to the standard Phoenix routing framework.
 
 As a result, users can enter URLs using localised terms which can enhance user engagement and content relevance.
 
-Similarly, localised path and URL helpers are generated that wrap the standard Phoenix helpers to supporting generating localised paths and URLs.
+Similarly, localised path and URL helpers are generated that wrap the standard [Phoenix helpers](https://hexdocs.pm/phoenix/routing.html#path-helpers) to support generating localised paths and URLs.
 
 ## Setting up
 
