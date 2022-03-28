@@ -132,7 +132,7 @@ For each localized path, the `Cldr` locale is added to the `:assigns` for the ro
 
 ## Installation
 
-The package can be installed by adding `ex_cldr_routes` to your list of dependencies in `mix.exs`. See also the section on [setting up](#setting_up) for configuring the `Cldr` backend module and the phoenix router.
+The package can be installed by adding `ex_cldr_routes` to your list of dependencies in `mix.exs`. See also the section on [setting up](#setting-up) for configuring the `Cldr` backend module and the phoenix router.
 
 ```elixir
 def deps do
