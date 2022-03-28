@@ -43,10 +43,12 @@ defmodule MyApp.Cldr do
     locales: ["en", "fr"],
     default_locale: "en".
     gettext: MyApp.Gettext
-    providers: [Cldr.Routes]
+    providers: [Cldr.Route]
 
 end
 ```
+
+*Note* the addition of `Cldr.Route` to the `:providers` configuration key is required.
 
 ### Define Localized Routes
 
