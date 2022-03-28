@@ -7,19 +7,35 @@
 
 Generate localized routes and route helper modules.
 
-This module when `use`d , provides a `localize/1` macro that is designed to wrap the standard Phoenix route macros such as `get/3`, `put/3` and `resources/3` and localises them for each locale defined in a Gettext backend module attached to a Cldr backend module.
+This module when `use`d , provides a `localize/1` macro that is designed to wrap the standard Phoenix route macros such as `get/3`, `put/3` and `resources/3`. The routes are localised for each locale configured in a `Gettext` backend module that is attached to a `Cldr` backend module.
 
-Translations for the parts of a given route path are translated at compile-time which are then combined into a localised route that is added to the standard Phoenix routing framework.
+Translations for the parts of a given route path are performed at compile-time and are then combined into a localised route that is added to the standard Phoenix routing framework.
 
 As a result, users can enter URLs using localised terms which can enhance user engagement and content relevance.
 
-Similarly, a localised path and URL helpers are generated that wrap the standard Phoenix helpers to supporting generating localised paths and URLs.
+Similarly, localised path and URL helpers are generated that wrap the standard Phoenix helpers to supporting generating localised paths and URLs.
 
 ## Setting up
 
-A `Cldr` backend module that configures an associated `gettext` backend is required.
+A `Cldr` backend module that configures an associated `gettext` backend is required. In addition, a `Gettext` backend must be configured and added to the `Cldr` configuration.
 
-Path parts (the parts between "/") are translated at compile time using `Gettext`. Therefore localization can only be applied to locales that are defined in a [gettext backend module](https://hexdocs.pm/gettext/Gettext.html#module-using-gettext) that attached to a `Cldr` backend module. For example:
+Path parts (the parts between "/") are translated at compile time using `Gettext`. Therefore localization can only be applied to locales that are defined in a [gettext backend module](https://hexdocs.pm/gettext/Gettext.html#module-using-gettext) that is attached to a `Cldr` backend module. 
+
+The following steps should be followed to set up the configuration for localized routes and helpers:
+
+### Configure Gettext
+
+The first step is to ensure there is a configured `Gettext` backend module:
+
+```elixir
+defmodule MyApp.Gettext do
+  use Gettext, otp_app: :my_app
+end
+```
+
+### Configure Cldr
+
+The next step is to configure a `Cldr` backend module, including configuring it with the `Gettext` module defined in the first step. The `MyApp.Cldr` backend module is used to instrospect the configured locales that drive the route and helper localization.
 
 ```elixir
 defmodule MyApp.Cldr do
@@ -32,9 +48,9 @@ defmodule MyApp.Cldr do
 end
 ```
 
-Here the `MyApp.Cldr` backend module is used to instrospect the configured locales in order to drive the localization generation.
+### Define Localized Routes
 
-Next, configure the router module to use the `localize/1` macro by adding `use MyApp.Cldr.Route` to the module and invoke the `localize/1` macro to wrap the required routes. For example:
+Now we can configure the router module to use the `localize/1` macro by adding `use MyApp.Cldr.Route` to the module and invoke the `localize/1` macro to wrap the required routes. `use MyApp.Cldr.Router` must be added *after* `use Phoenix.Router`. For example:
 
 ```elixir
 defmodule MyApp.Router do
@@ -76,7 +92,7 @@ users_path  DELETE  /users_fr/:id       UsersController :delete
 
 In order for routes to be localized, translations must be provided for each path segment in each locale. This translation is performed by `Gettext.dgettext/3` with the domain "routes". Therefore for each configured locale, a "routes.pot" file is required containing the path segment translations for that locale.
 
-Using the example Cldr backend that has "en" and "fr" Gettext locales then the directory structure would look like the following (if the default Gettext configuration is used):
+Using the example `Cldr` backend that has "en" and "fr" `Gettext` locales, the directory structure will look like the following (if the default `Gettext` configuration is used):
 
     priv/gettext
     ├── default.pot
@@ -93,8 +109,7 @@ Using the example Cldr backend that has "en" and "fr" Gettext locales then the d
             └── routes.po
 
 **Note** that since the translations are performed with `Gettext.dgettext/3` at compile time, the message ids are not autoamtically populated and must be manually added to the "routes.pot" file for each locale. That is, the mix tasks `mix gettext.extract` and `mix gettext.merge` will not detect or extract the route segments.
-  
-  
+
 ## Path Helpers
 
 In the same way that Phoenix generates a `MyApp.Router.Helpers` module, `ex_cldr_routes` also generates a `MyApp.Router.LocalizedHelpers` module that translates localized paths. Since this module is generated alongside the standard `Helpers` module, an application can decide to generate either canonical paths or localized paths.  Here are some examples, assuming the same `Cldr` and `Gettext` configuration as the previous examples:
@@ -109,13 +124,15 @@ iex> MyApp.Router.LocalizedHelpers.page_path %Plug.Conn{}, :show, 1
 
 ```
 
+*Note* The localized helpers translate the path based upon the currently set `Gettext` locale. It is the developers responsibility to ensure that the locale is set appropriately before calling any localized path helpers.
+
 ## Assigns
 
-For each localized path, the Cldr locale is added to the `:assigns` for the route under the `:cldr_locale` key. This allows the developer to recognise which locale was used to generate the localized route.
+For each localized path, the `Cldr` locale is added to the `:assigns` for the route under the `:cldr_locale` key. This allows the developer to recognise which locale was used to generate the localized route.
 
 ## Installation
 
-The package can be installed by adding `ex_cldr_routes` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `ex_cldr_routes` to your list of dependencies in `mix.exs`. See also the section on [setting up](#setting_up) for configuring the `Cldr` backend module and the phoenix router.
 
 ```elixir
 def deps do
@@ -125,5 +142,5 @@ def deps do
 end
 ```
 
-The docs canbe found at <https://hexdocs.pm/ex_cldr_routes>.
+The docs can be found at <https://hexdocs.pm/ex_cldr_routes>.
 
