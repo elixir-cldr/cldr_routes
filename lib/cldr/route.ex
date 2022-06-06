@@ -134,7 +134,18 @@ defmodule Cldr.Route do
   @path_separator "/"
   @interpolate ":"
 
-  @localizable_verbs [:resources, :get, :put, :patch, :post, :delete, :options, :head, :connect]
+  @localizable_verbs [
+    :resources,
+    :get,
+    :put,
+    :patch,
+    :post,
+    :delete,
+    :options,
+    :head,
+    :connect,
+    :live
+  ]
 
   @doc false
   def cldr_backend_provider(config) do
@@ -310,21 +321,17 @@ defmodule Cldr.Route do
   end
 
   # Do the actual translations
-  defmacro localize(cldr_locale_name, {verb, meta, [path | args]})
-      when verb in @localizable_verbs do
-    cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
-    gettext_backend = cldr_backend.__cldr__(:config).gettext
-    {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)
+  @template_verbs @localizable_verbs -- [:live]
 
-    if cldr_locale.gettext_locale_name do
-      translated_path = Cldr.Route.translated_path(path, gettext_backend, cldr_locale.gettext_locale_name)
-      args = Cldr.Route.add_route_locale_to_assigns(args, cldr_locale)
-      {verb, meta, [translated_path | args]}
-    else
-      IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a known gettext locale." <>
-        " No #{inspect cldr_locale_name} localized routes will be generated for #{inspect verb} #{inspect path}", []
-      {verb, meta, [path | args]}
-    end
+  defmacro localize(cldr_locale_name, {verb, meta, [path | args]})
+      when verb in @template_verbs do
+    cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
+    do_localize(:assigns, cldr_locale_name, cldr_backend, {verb, meta, [path | args]})
+  end
+
+  defmacro localize(cldr_locale_name, {:live = verb, meta, [path | args]}) do
+    cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
+    do_localize(:private, cldr_locale_name, cldr_backend, {verb, meta, [path | args]})
   end
 
   # If the verb is unsupported for localization
@@ -337,6 +344,21 @@ defmodule Cldr.Route do
       Invalid route for localization: #{verb} #{inspect path}, #{inspect args}
       Allowed localizable routes are #{inspect @localizable_verbs}
       """
+  end
+
+  def do_localize(field, cldr_locale_name, cldr_backend, {verb, meta, [path | args]}) do
+    gettext_backend = cldr_backend.__cldr__(:config).gettext
+    {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)
+
+    if cldr_locale.gettext_locale_name do
+      translated_path = Cldr.Route.translated_path(path, gettext_backend, cldr_locale.gettext_locale_name)
+      args = Cldr.Route.add_route_locale_to_assigns(field, args, cldr_locale)
+      {verb, meta, [translated_path | args]}
+    else
+      IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a known gettext locale." <>
+        " No #{inspect cldr_locale_name} localized routes will be generated for #{inspect verb} #{inspect path}", []
+      {verb, meta, [path | args]}
+    end
   end
 
   defp warn_no_gettext_locale(cldr_locale_name, route) do
@@ -375,17 +397,17 @@ defmodule Cldr.Route do
   # do: block in the correct place
 
   @doc false
-  def add_route_locale_to_assigns(args, locale) do
+  def add_route_locale_to_assigns(field, args, locale) do
     case Enum.reverse(args) do
       [[do: block], last | rest] ->
         last
-        |> put_route_locale(locale)
+        |> put_route_locale(field, locale)
         |> combine(rest, [do: block])
         |> Enum.reverse()
 
       [last | rest] ->
         last
-        |> put_route_locale(locale)
+        |> put_route_locale(field, locale)
         |> combine(rest)
         |> Enum.reverse()
     end
@@ -398,9 +420,9 @@ defmodule Cldr.Route do
   defp combine(first, rest, block), do: [block, first | rest]
 
   # Keyword list of options - update or add :assigns
-  defp put_route_locale([{key, _value} | _rest] = options, locale) when is_atom(key) do
+  defp put_route_locale([{key, _value} | _rest] = options, field, locale) when is_atom(key) do
     {assigns, options} = Keyword.pop(options, :assigns)
-    options = [Keyword.put(options, :assigns, Cldr.Route.put_locale(assigns, locale))]
+    options = [Keyword.put(options, field, Cldr.Route.put_locale(assigns, locale))]
 
     quote do
       unquote(options)
@@ -408,10 +430,10 @@ defmodule Cldr.Route do
   end
 
   # Not a keyword list - fabricate one
-  defp put_route_locale(last, locale) do
+  defp put_route_locale(last, field, locale) do
     options =
       quote do
-        [assigns: %{cldr_locale: unquote(Macro.escape(locale))}]
+        [{unquote(field), %{cldr_locale: unquote(Macro.escape(locale))}}]
       end
 
     [options, last]

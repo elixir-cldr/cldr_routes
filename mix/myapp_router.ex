@@ -1,5 +1,6 @@
 defmodule MyApp.Router do
   use Phoenix.Router
+  import Phoenix.LiveView.Router
   use MyApp.Cldr.Routes
 
   localize do
@@ -26,6 +27,10 @@ defmodule MyApp.Router do
   localize "fr" do
     get "/chapters/:page", PageController, :show, as: "chap"
     put "/pages/:page", PageController, :update
+  end
+
+  localize "fr" do
+    live "/columns/:page", PageController
   end
 
   # Unlocalized route with translatable path
