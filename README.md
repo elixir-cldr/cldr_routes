@@ -52,12 +52,12 @@ end
 
 ### Define Localized Routes
 
-Now we can configure the router module to use the `localize/1` macro by adding `use MyApp.Cldr.Route` to the module and invoke the `localize/1` macro to wrap the required routes. `use MyApp.Cldr.Router` must be added *after* `use Phoenix.Router`. For example:
+Now we can configure the router module to use the `localize/1` macro by adding `use MyApp.Cldr.Routes` to the module and invoke the `localize/1` macro to wrap the required routes. `use MyApp.Cldr.Routes` must be added *after* `use Phoenix.Router`. For example:
 
 ```elixir
 defmodule MyApp.Router do
   use Phoenix.Router
-  use MyApp.Cldr.Route
+  use MyApp.Cldr.Routes
 
   localize do
     get "/pages/:page", PageController, :show
