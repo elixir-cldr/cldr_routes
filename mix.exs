@@ -15,6 +15,7 @@ defmodule CldrRoutes.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       package: package(),
       deps: deps(),
+      compilers: [:gettext] ++ Mix.compilers(),
 
       # Docs
       name: "Cldr Routes",

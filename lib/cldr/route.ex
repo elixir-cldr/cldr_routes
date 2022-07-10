@@ -237,9 +237,15 @@ defmodule Cldr.Route do
 
   defmacro localize([do: route]) do
     cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
+    gettext_backend = cldr_backend.__cldr__(:config).gettext
     cldr_locale_names = cldr_backend.known_locale_names()
 
+    unless gettext_backend do
+      raise "Cldr backend #{cldr_backend} does not have a configured Gettext backend."
+    end
+
     quote do
+      require unquote(gettext_backend)
       localize(unquote(cldr_locale_names), [do: unquote(route)])
     end
   end
@@ -346,7 +352,7 @@ defmodule Cldr.Route do
       """
   end
 
-  def do_localize(field, cldr_locale_name, cldr_backend, {verb, meta, [path | args]}) do
+  def do_localize(field, cldr_locale_name, cldr_backend, {verb, meta, [path | args]} = route) do
     gettext_backend = cldr_backend.__cldr__(:config).gettext
     {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)
 
@@ -355,14 +361,13 @@ defmodule Cldr.Route do
       args = Cldr.Route.add_route_locale_to_assigns(field, args, cldr_locale)
       {verb, meta, [translated_path | args]}
     else
-      IO.warn "Cldr locale #{inspect cldr_locale_name} does not have a known gettext locale." <>
-        " No #{inspect cldr_locale_name} localized routes will be generated for #{inspect verb} #{inspect path}", []
+      warn_no_gettext_locale(cldr_locale_name, route)
       {verb, meta, [path | args]}
     end
   end
 
   defp warn_no_gettext_locale(cldr_locale_name, route) do
-    {verb, _meta, [path, _controller, _args]} = route
+    {verb, _meta, [path, _controller | _args]} = route
     IO.warn "No known gettext locale for #{inspect cldr_locale_name}. " <>
       "No #{inspect cldr_locale_name} localized routes will be generated for #{inspect verb} #{inspect path}", []
     nil
@@ -375,17 +380,27 @@ defmodule Cldr.Route do
 
   @doc false
   def translated_path(path, gettext_backend, locale) do
-    Gettext.put_locale(gettext_backend, locale)
-
     path
     |> String.split(@path_separator)
-    |> Enum.map(&translate_part(gettext_backend, &1))
-    |> Enum.join(@path_separator)
+    |> Enum.map(&translate_part(gettext_backend, locale, &1))
+    |> List.insert_at(0, "/")
+    |> reduce_parts()
   end
 
-  defp translate_part(_gettext_backend, "" = part), do: part
-  defp translate_part(_gettext_backend, @interpolate <> _rest = part), do: part
-  defp translate_part(gettext_backend, part), do: Gettext.dgettext(gettext_backend, @domain, part)
+  defp translate_part(_gettext_backend, _locale, "" = part), do: part
+  defp translate_part(_gettext_backend, _locale, @interpolate <> _rest = part), do: part
+  defp translate_part(gettext_backend, locale, part) do
+    domain = @domain
+
+    quote do
+      Gettext.put_locale(unquote(gettext_backend), unquote(locale))
+      unquote(gettext_backend).dgettext(unquote(domain), unquote(part))
+    end
+  end
+
+  defp reduce_parts([]), do: []
+  defp reduce_parts([a, b]), do: {:<>, [], [a,  {:<>, [], ["/", b]}]}
+  defp reduce_parts([a | b]), do: {:<>, [], [a, reduce_parts(b)]}
 
   # Add an assign :cldr_locale that is the
   # gettext locale for which this route was recognised.

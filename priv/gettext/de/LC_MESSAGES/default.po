@@ -8,5 +8,5 @@
 ## to merge POT files into PO files.
 msgid ""
 msgstr ""
-"Language: fr\n"
+"Language: de\n"
 "Plural-Forms: nplurals=2\n"

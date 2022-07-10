@@ -1,3 +1,16 @@
+## "msgid"s in this file come from POT (.pot) files.
+##
+## Do not add, change, or remove "msgid"s manually here as
+## they're tied to the ones in the corresponding POT file
+## (with the same domain).
+##
+## Use "mix gettext.extract --merge" or "mix gettext.merge"
+## to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: de\n"
+"Plural-Forms: nplurals=2\n"
+
 #, elixir-autogen
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
@@ -24,41 +37,41 @@
 #: mix/myapp_router.ex:18
 #: mix/myapp_router.ex:27
 msgid "pages"
-msgstr ""
+msgstr "pages_de"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 msgid "users"
-msgstr ""
+msgstr "users_de"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 msgid "faces"
-msgstr ""
+msgstr "faces_de"
 
 msgid "eyes"
-msgstr ""
+msgstr "eyes_de"
 
 msgid "edit"
-msgstr ""
+msgstr "edit_de"
 
 msgid "objects"
-msgstr ""
+msgstr "objects_de"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:27
 msgid "chapters"
-msgstr ""
+msgstr "chapters_de"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:13
 #: mix/myapp_router.ex:13
 msgid "comments"
-msgstr ""
+msgstr "comments_de"
 
 #, elixir-autogen, elixir-format
 #: mix/myapp_router.ex:37

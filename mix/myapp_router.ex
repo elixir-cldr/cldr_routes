@@ -29,6 +29,11 @@ defmodule MyApp.Router do
     put "/pages/:page", PageController, :update
   end
 
+  localize "de" do
+    get "/kapitel/:page", PageController, :show
+    put "/seite/:page", PageController, :update
+  end
+
   localize "fr" do
     live "/columns/:page", PageController
   end
