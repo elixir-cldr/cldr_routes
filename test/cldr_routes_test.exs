@@ -67,12 +67,13 @@ defmodule Cldr.Route.Test do
     end
 
     test "localized path helper with configured :as" do
-      Cldr.put_locale MyApp.Cldr, "fr"
+      Cldr.put_locale(MyApp.Cldr, "fr")
       assert MyApp.Router.LocalizedHelpers.chap_path(%Plug.Conn{}, :show, 1) == "/chapters_fr/1"
     end
 
     test "no localized path helper" do
       Cldr.put_locale(MyApp.Cldr, "en")
+
       assert MyApp.Router.LocalizedHelpers.not_localized_path(%Plug.Conn{}, :show, 1) ==
                "/not_localized/1"
 
@@ -81,13 +82,14 @@ defmodule Cldr.Route.Test do
                  "/not_localized/1"
 
         assert MyApp.Router.LocalizedHelpers.user_user_path(%Plug.Conn{}, :index, 1, thing: :other) ==
-                "/users_fr/1/faces_fr?thing=other"
+                 "/users_fr/1/faces_fr?thing=other"
       end)
     end
 
     test "helper isn't localized to a locale" do
-      Cldr.put_locale MyApp.Cldr, "en"
-      assert_raise  ArgumentError, fn ->
+      Cldr.put_locale(MyApp.Cldr, "en")
+
+      assert_raise ArgumentError, ~r/for locale/, fn ->
         MyApp.Router.LocalizedHelpers.chap_path(%Plug.Conn{}, :show, 1)
       end
     end

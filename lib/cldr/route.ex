@@ -60,11 +60,11 @@ defmodule Cldr.Route do
   ```elixir
   defmodule MyApp.Router do
     use Phoenix.Router
-    use MyApp.Cldr.Route
+    use MyApp.Cldr.Routes
 
     localize do
       get "/pages/:page", PageController, :show
-      resources "/users", UsersController
+      resources "/users", UserController
     end
   end
   ```
@@ -77,25 +77,94 @@ defmodule Cldr.Route do
   ```bash
   % mix phx.routes MyApp.Router
 
-   page_path  GET     /pages/:page        PageController :show
-   page_path  GET     /pages_fr/:page     PageController :show
-  users_path  GET     /users              UsersController :index
-  users_path  GET     /users/:id/edit     UsersController :edit
-  users_path  GET     /users/new          UsersController :new
-  users_path  GET     /users/:id          UsersController :show
-  users_path  POST    /users              UsersController :create
-  users_path  PATCH   /users/:id          UsersController :update
-              PUT     /users/:id          UsersController :update
-  users_path  DELETE  /users/:id          UsersController :delete
-  users_path  GET     /users_fr           UsersController :index
-  users_path  GET     /users_fr/:id/edit  UsersController :edit
-  users_path  GET     /users_fr/new       UsersController :new
-  users_path  GET     /users_fr/:id       UsersController :show
-  users_path  POST    /users_fr           UsersController :create
-  users_path  PATCH   /users_fr/:id       UsersController :update
-              PUT     /users_fr/:id       UsersController :update
-  users_path  DELETE  /users_fr/:id       UsersController :delete
+  page_de_path  GET     /pages_de/:page     PageController :show
+  page_en_path  GET     /pages/:page        PageController :show
+  page_fr_path  GET     /pages_fr/:page     PageController :show
+  user_de_path  GET     /users_de           UserController :index
+  user_de_path  GET     /users_de/:id/edit  UserController :edit
+  user_de_path  GET     /users_de/new       UserController :new
+  user_de_path  GET     /users_de/:id       UserController :show
+  user_de_path  POST    /users_de           UserController :create
+  user_de_path  PATCH   /users_de/:id       UserController :update
+                PUT     /users_de/:id       UserController :update
+  user_de_path  DELETE  /users_de/:id       UserController :delete
+  user_en_path  GET     /users              UserController :index
+  user_en_path  GET     /users/:id/edit     UserController :edit
+  user_en_path  GET     /users/new          UserController :new
+  user_en_path  GET     /users/:id          UserController :show
+  user_en_path  POST    /users              UserController :create
+  user_en_path  PATCH   /users/:id          UserController :update
+                PUT     /users/:id          UserController :update
+  user_en_path  DELETE  /users/:id          UserController :delete
+  user_fr_path  GET     /users_fr           UserController :index
+  user_fr_path  GET     /users_fr/:id/edit  UserController :edit
+  user_fr_path  GET     /users_fr/new       UserController :new
+  user_fr_path  GET     /users_fr/:id       UserController :show
+  user_fr_path  POST    /users_fr           UserController :create
+  user_fr_path  PATCH   /users_fr/:id       UserController :update
+                PUT     /users_fr/:id       UserController :update
+  user_fr_path  DELETE  /users_fr/:id       UserController :delete
   ```
+
+  ### Localized Helpers
+
+  Manually constructing the localized helper names shown in
+  the example above would be tedious. Therefore a `LocalizedHelpers`
+  module is geenrated at compile-time. Assuming the router
+  module is called `MyApp.Router` then the full name of the
+  localized helper module is `MyApp.Router.LocalizedHelpers`.
+
+  The functions on this module are the non-localized versions.
+  For example, assuming the same configuration of routes as the
+  earlier example:
+  ```elixir
+  iex> MyApp.Router.LocalizedHelpers.
+  helper/5              page_path/3           page_path/4
+  page_url/3            page_url/4            path/2
+  static_integrity/2    static_path/2         static_url/2
+  url/1                 user_path/2           user_path/3
+  user_path/4           user_url/2            user_url/3
+  user_url/4
+  ```
+
+  The functions on the `LocalizedHelpers` module all respect
+  the current locale, based upon `Cldr.get_locale/1`, and will
+  delegate to the appropriate localized function in the
+  `Helpers` function created automatically at compile time.
+
+  ### Configuring Localized Helpers as default
+
+  Since `LocalizedHelpers` have the same semantics and
+  API as the standard `Helpers` module it is possible to
+  update the generated Phoenix configuration to use the
+  `LocalizedHelpers` module by default.  Assuming the
+  presence of `myapp_web.ex` defining the module `MyAppWeb`
+  then changing the `view_helpers` function from
+  ```elixir
+  defp view_helpers do
+    quote do
+      ...
+
+      import MyAppWeb.ErrorHelpers
+      import MyAppWeb.Gettext
+      alias MyAppWeb.Router.Helpers, as: Routes
+    end
+  end
+  ```
+  to
+  ```elixir
+  defp view_helpers do
+    quote do
+      ...
+
+      import MyAppWeb.ErrorHelpers
+      import MyAppWeb.Gettext
+      alias MyAppWeb.Router.LocalizedHelpers, as: Routes
+    end
+  end
+  ```
+  will result in the automatic use of the localized
+  helpers rather than the standard helpers.
 
   ### Translations
 
@@ -122,11 +191,6 @@ defmodule Cldr.Route do
               ├── default.po
               ├── errors.po
               └── routes.po
-
-  Note that since the translations are performed with the functional
-  form at compile time, the message ids are not autoamtically
-  populated and must be manually added to the "routes.pot" file for
-  each locale.
 
   """
 
@@ -388,9 +452,11 @@ defmodule Cldr.Route do
       [controller, options, do_block] ->
         {_aliases, _meta, controller_name} = controller
         configured_helper = get_option(args, :as)
+
         options =
           options
           |> Keyword.put(:as, helper_name(controller_name, locale, configured_helper))
+
         # |> Keyword.put(:name, name(controller_name))
 
         [controller, options, do_block]

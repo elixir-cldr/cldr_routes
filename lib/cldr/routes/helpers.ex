@@ -26,14 +26,14 @@ defmodule Cldr.Route.LocalizedHelpers do
     non_localized_helpers = non_localized_helpers(groups, helper_module)
     proxy_helpers = proxy_helpers(groups, helper_module, cldr_backend)
     other_proxies = other_proxies(helper_module)
-    catch_all = catch_all(groups)
+    catch_all = catch_all(groups, helper_module)
 
     code =
       quote do
         @moduledoc unquote(docs) &&
-        """
-        Module with localized helpers generated from #{inspect(unquote(env.module))}.
-        """
+                     """
+                     Module with localized helpers generated from #{inspect(unquote(env.module))}.
+                     """
         unquote_splicing(localized_helpers)
         unquote_splicing(non_localized_helpers)
         unquote_splicing(proxy_helpers)
@@ -66,7 +66,8 @@ defmodule Cldr.Route.LocalizedHelpers do
             locale,
             conn_or_endpoint,
             plug_opts,
-            unquote_splicing(vars), %{}
+            unquote_splicing(vars),
+            %{}
           )
         end
 
@@ -166,25 +167,23 @@ defmodule Cldr.Route.LocalizedHelpers do
   # for a valid helper that is not available in the specified
   # locale.
 
-  defp catch_all(groups) do
+  defp catch_all(groups, helper_module) do
     for {helper, routes_and_exprs} <- groups,
-        stripped_helper = strip_locale(helper),
-        helper !=  stripped_helper do
-
-      helper = stripped_helper
-
+        proxy_helper = strip_locale(helper),
+        helper != proxy_helper do
       routes =
         routes_and_exprs
-        |> Enum.map(fn {routes, exprs} -> {routes.plug_opts, Enum.map(exprs.binding, &elem(&1, 0))} end)
+        |> Enum.map(fn {routes, exprs} ->
+          {routes.plug_opts, Enum.map(exprs.binding, &elem(&1, 0))}
+        end)
         |> Enum.sort()
 
       params_lengths =
-  	    routes
-  	    |> Enum.map(fn {_, bindings} -> length(bindings) end)
-  	    |> Enum.uniq()
+        routes
+        |> Enum.map(fn {_, bindings} -> length(bindings) end)
+        |> Enum.uniq()
 
-      binding_lengths =
-        Enum.reject(params_lengths, &(&1 - 1 in params_lengths))
+      binding_lengths = Enum.reject(params_lengths, &((&1 - 1) in params_lengths))
 
       catch_all_no_params =
         for length <- binding_lengths do
@@ -192,9 +191,26 @@ defmodule Cldr.Route.LocalizedHelpers do
           arity = length + 2
 
           quote do
-            def helper(unquote(helper), suffix, locale, conn_or_endpoint, action, unquote_splicing(binding)) do
+            def helper(
+                  unquote(proxy_helper),
+                  suffix,
+                  locale,
+                  conn_or_endpoint,
+                  action,
+                  unquote_splicing(binding)
+                ) do
               path(conn_or_endpoint, "/")
-              raise_route_error(unquote(helper), :path, unquote(arity), action, locale, [])
+
+              raise_route_error(
+                unquote(proxy_helper),
+                suffix,
+                unquote(arity),
+                action,
+                locale,
+                unquote(helper_module),
+                unquote(helper),
+                []
+              )
             end
           end
         end
@@ -205,17 +221,47 @@ defmodule Cldr.Route.LocalizedHelpers do
           arity = length + 2
 
           quote do
-            def  helper(unquote(helper), suffix, locale, conn_or_endpoint, action, unquote_splicing(binding), params) do
+            def helper(
+                  unquote(proxy_helper),
+                  suffix,
+                  locale,
+                  conn_or_endpoint,
+                  action,
+                  unquote_splicing(binding),
+                  params
+                ) do
               path(conn_or_endpoint, "/")
-              raise_route_error(unquote(helper), :path, unquote(arity + 1), action, locale, params)
+
+              raise_route_error(
+                unquote(proxy_helper),
+                suffix,
+                unquote(arity + 1),
+                action,
+                locale,
+                unquote(helper_module),
+                unquote(helper),
+                params
+              )
             end
 
-            defp raise_route_error(unquote(helper), suffix, arity, action, locale, params) do
-              Phoenix.Router.Helpers.raise_route_error(
+            defp raise_route_error(
+                   unquote(proxy_helper),
+                   suffix,
+                   arity,
+                   action,
+                   locale,
+                   unquote(helper_module),
+                   unquote(helper),
+                   params
+                 ) do
+              Cldr.Route.LocalizedHelpers.raise_route_error(
                 __MODULE__,
-                "#{unquote(helper)}_#{suffix}",
+                "#{unquote(proxy_helper)}_#{suffix}",
                 arity,
                 action,
+                locale,
+                unquote(helper_module),
+                unquote(helper),
                 unquote(Macro.escape(routes)),
                 params
               )
@@ -266,8 +312,61 @@ defmodule Cldr.Route.LocalizedHelpers do
       def static_integrity(conn_or_endpoint, path) do
         unquote(helper_module).static_integrity(conn_or_endpoint, path)
       end
-
     end
+  end
+
+  @doc """
+  Callback for generate router catch alls.
+  """
+  def raise_route_error(mod, fun, arity, action, locale, helper_module, helper, routes, params) do
+    cond do
+      localized_fun_exists?(helper_module, helper, fun, arity) ->
+        "no function clause for #{inspect(mod)}.#{fun}/#{arity} for locale #{inspect(locale)}"
+        |> invalid_route_error(fun, routes)
+
+      is_atom(action) and not Keyword.has_key?(routes, action) ->
+        "no action #{inspect(action)} for #{inspect(mod)}.#{fun}/#{arity}"
+        |> invalid_route_error(fun, routes)
+
+      is_list(params) or is_map(params) ->
+        "no function clause for #{inspect(mod)}.#{fun}/#{arity} and action #{inspect(action)}"
+        |> invalid_route_error(fun, routes)
+
+      true ->
+        invalid_param_error(mod, fun, arity, action, routes)
+    end
+  end
+
+  defp localized_fun_exists?(helper_module, helper, fun, arity) do
+    suffix = String.split(fun, "_") |> Enum.reverse() |> hd()
+    helper = :"#{helper}_#{suffix}"
+    function_exported?(helper_module, helper, arity)
+  end
+
+  defp invalid_route_error(prelude, fun, routes) do
+    suggestions =
+      for {action, bindings} <- routes do
+        bindings = Enum.join([inspect(action) | bindings], ", ")
+        "\n    #{fun}(conn_or_endpoint, #{bindings}, params \\\\ [])"
+      end
+
+    raise ArgumentError,
+          "#{prelude}. The following actions/clauses are supported:\n#{suggestions}"
+  end
+
+  defp invalid_param_error(mod, fun, arity, action, routes) do
+    call_vars = Keyword.fetch!(routes, action)
+
+    raise ArgumentError, """
+    #{inspect(mod)}.#{fun}/#{arity} called with invalid params.
+    The last argument to this function should be a keyword list or a map.
+    For example:
+
+        #{fun}(#{Enum.join(["conn", ":#{action}" | call_vars], ", ")}, page: 5, per_page: 10)
+
+    It is possible you have called this function without defining the proper
+    number of path segments in your router.
+    """
   end
 
   defp routes_in_order(routes) do
