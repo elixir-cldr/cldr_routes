@@ -118,7 +118,7 @@ defmodule Cldr.Route do
   For example, assuming the same configuration of routes as the
   earlier example:
   ```elixir
-  iex> MyApp.Router.LocalizedHelpers.
+  ==> MyApp.Router.LocalizedHelpers.
   helper/5              page_path/3           page_path/4
   page_url/3            page_url/4            path/2
   static_integrity/2    static_path/2         static_url/2
