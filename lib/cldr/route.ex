@@ -374,48 +374,49 @@ defmodule Cldr.Route do
     end
   end
 
-  #####
-  # Honour :as and :name but add the locale to it (except the default locale)
-  # Create LocalizedHelper module as a proxy to the real helpers now that we
-  # know them
-  #
   # Localise the helper name for the a verb (except resources)
   defp localise_helper(args, verb, locale) when verb not in [:resources] do
     [{_aliases, _meta, controller} | _rest] = args
-    helper = helper_name(controller, locale)
+    configured_helper = get_option(args, :as)
+    helper = helper_name(controller, locale, configured_helper)
     put_option(args, :as, String.to_atom(helper))
   end
-
-  # If its resources then we localise the helper :as but only if there
-  # is no :do block because we only localise at the lowest level
 
   # It appears that `:name` is overridden by `:as` :-(
   defp localise_helper(args, :resources, locale) do
     case args do
       [controller, options, do_block] ->
         {_aliases, _meta, controller_name} = controller
-
+        configured_helper = get_option(args, :as)
         options =
           options
-          |> Keyword.put(:as, helper_name(controller_name, locale))
-
+          |> Keyword.put(:as, helper_name(controller_name, locale, configured_helper))
         # |> Keyword.put(:name, name(controller_name))
 
         [controller, options, do_block]
 
       [controller, _options] ->
         {_aliases, _meta, controller} = controller
-        helper = helper_name(controller, locale)
+        configured_helper = get_option(args, :as)
+        helper = helper_name(controller, locale, configured_helper)
         put_option(args, :as, helper)
     end
   end
 
-  defp helper_name(controller, locale) do
+  defp helper_name(controller, locale, nil) do
     Phoenix.Naming.resource_name(Module.concat(controller), "Controller") <> "_" <> locale
   end
 
-  def name(controller) do
-    Phoenix.Naming.resource_name(Module.concat(controller), "Controller")
+  defp helper_name(_controller, locale, configured_helper) do
+    configured_helper <> "_" <> locale
+  end
+
+  defp get_option([_controller, _action, options], field) do
+    Keyword.get(options, field)
+  end
+
+  defp get_option([_controller, options], field) do
+    Keyword.get(options, field)
   end
 
   # For non-live routes
