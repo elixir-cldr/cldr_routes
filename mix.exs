@@ -31,11 +31,10 @@ defmodule CldrRoutes.MixProject do
           "CHANGELOG.md"
         ]
       ],
-
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore_warnings",
         plt_add_apps: ~w(jason mix)a
-      ],
+      ]
     ]
   end
 
