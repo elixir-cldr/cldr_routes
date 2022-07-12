@@ -99,6 +99,23 @@ user_fr_path  PATCH   /users_fr/:id       UserController :update
 user_fr_path  DELETE  /users_fr/:id       UserController :delete
 ```
 
+### Interpolating Locale Data
+
+A route may be defined with elements of the locale interpolated into it. These interpolatins are specified using the normal `#{}` interpolation syntax. However since route translation occurs at compile time only the following interpolations are supported:
+
+* `locale` will interpolate the Cldr locale name
+* `language` will interpolate the Cldr language name
+* `territory` will interpolate the Cldr territory code
+
+Some examples are:
+```elixir
+localize do
+  get "/#{locale}/locale/pages/:page", PageController, :show
+  get "/#{language}/language/pages/:page", PageController, :show
+  get "/#{territory}/territory/pages/:page", PageController, :show
+end
+```
+
 ### Localized Helpers
 
 Manually constructing the localized helper names shown in the example above would be tedious. Therefore a `LocalizedHelpers` module is geenrated at compile-time. Assuming the router module is called `MyApp.Router` then the full name of the localized helper module is `MyApp.Router.LocalizedHelpers`.

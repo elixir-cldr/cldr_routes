@@ -83,7 +83,7 @@ defmodule CldrRoutes.MixProject do
     }
   end
 
-  defp elixirc_paths(:test), do: ["lib", "src", "mix", "test"]
+  defp elixirc_paths(:test), do: ["lib", "src", "mix", "test", "test/support"]
   defp elixirc_paths(:dev), do: ["lib", "mix", "bench"]
   defp elixirc_paths(:release), do: ["lib"]
   defp elixirc_paths(_), do: ["lib"]

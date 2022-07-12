@@ -22,7 +22,7 @@ defmodule Cldr.Route do
   generated that wrap the standard Phoenix helpers to
   supporting generating localised path and URLs.
 
-  ### Setting up
+  ### COnfiguration
 
   A Cldr backend module that configures a `Gettext`
   asosciated backend is required.
@@ -104,6 +104,27 @@ defmodule Cldr.Route do
   user_fr_path  PATCH   /users_fr/:id       UserController :update
                 PUT     /users_fr/:id       UserController :update
   user_fr_path  DELETE  /users_fr/:id       UserController :delete
+  ```
+
+  ### Interpolating Locale Data
+
+  A route may be defined with elements of the locale
+  interpolated into it. These interpolatins are specified
+  using the normal `#{}` interpolation syntax. However
+  since route translation occurs at compile time only
+  the following interpolations are supported:
+
+  * `locale` will interpolate the Cldr locale name
+  * `language` will interpolate the Cldr language name
+  * `territory` will interpolate the Cldr territory code
+
+  Some examples are:
+  ```elixir
+  localize do
+    get "/#{locale}/locale/pages/:page", PageController, :show
+    get "/#{language}/language/pages/:page", PageController, :show
+    get "/#{territory}/territory/pages/:page", PageController, :show
+  end
   ```
 
   ### Localized Helpers
@@ -425,7 +446,12 @@ defmodule Cldr.Route do
     {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)
 
     if cldr_locale.gettext_locale_name do
-      translated_path = translated_path(path, gettext_backend, cldr_locale.gettext_locale_name)
+      translated_path =
+        path
+        |> interpolate(cldr_locale)
+        |> combine_string_segments()
+        |> :erlang.iolist_to_binary()
+        |> translate_path(gettext_backend, cldr_locale.gettext_locale_name)
 
       args =
         add_route_locale_to_assigns(field, args, cldr_locale)
@@ -436,6 +462,64 @@ defmodule Cldr.Route do
       warn_no_gettext_locale(cldr_locale_name, route)
       {verb, meta, [path | args]}
     end
+  end
+
+  # Interpolates the locale, language and territory
+  # into he path by splicing the AST
+
+  defp interpolate(path, locale) do
+    Macro.prewalk path, fn
+      {{:., _, [Kernel, :to_string]}, _, [{:locale, _, _}]} ->
+        to_string(locale.cldr_locale_name) |> String.downcase()
+
+      {{:., _, [Kernel, :to_string]}, _, [{:language, _, _}]} ->
+        to_string(locale.language) |> String.downcase()
+
+      {{:., _, [Kernel, :to_string]}, _, [{:territory, _, _}]} ->
+        to_string(locale.territory) |> String.downcase()
+
+      other ->
+        other
+    end
+  end
+
+  # Since we are doing com[ile-time translation of the
+  # path, the path needs to be a string (not an expression).
+  # This function attempts to combine the segments and
+  # raises an exception if a string cannot be created.
+
+  defp combine_string_segments([]) do
+    []
+  end
+
+  defp combine_string_segments(a) when is_binary(a) do
+    [a]
+  end
+
+  defp combine_string_segments({:"::", _, [a, {:binary, _, _}]}) do
+    [a]
+  end
+
+  defp combine_string_segments({:<<>>, _, [a | b]}) do
+    [combine_string_segments(a) | combine_string_segments(b)]
+  end
+
+  defp combine_string_segments({:<>, _, [a, b]}) do
+   [combine_string_segments(a), combine_string_segments(b)]
+  end
+
+  defp combine_string_segments([a | rest]) do
+    [combine_string_segments(a) | combine_string_segments(rest)]
+  end
+
+  defp combine_string_segments(ast) do
+    raise ArgumentError,
+    """
+    The path arugment to a localized route must be a binary that
+    can be resolved at compile time. Found:
+
+    #{Macro.to_string(ast)}
+    """
   end
 
   # Localise the helper name for the a verb (except resources)
@@ -513,7 +597,7 @@ defmodule Cldr.Route do
   # at compile time it does not affect runtime behaviour.
 
   @doc false
-  def translated_path(path, gettext_backend, locale) do
+  def translate_path(path, gettext_backend, locale) do
     path
     |> String.split(@path_separator)
     |> Enum.map(&translate_part(gettext_backend, locale, &1))
@@ -535,7 +619,7 @@ defmodule Cldr.Route do
 
   defp reduce_parts([]), do: []
   defp reduce_parts([a, b]), do: {:<>, [], [a, {:<>, [], ["/", b]}]}
-  defp reduce_parts([a | b]), do: {:<>, [], [a, reduce_parts(b)]}
+  defp reduce_parts([a | b]), do: {:<>, [], [a, {:<>, [], ["/", reduce_parts(b)]}]}
 
   # Add an assign :cldr_locale that is the
   # gettext locale for which this route was recognised.

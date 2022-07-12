@@ -1,6 +1,7 @@
 defmodule Cldr.Route.Test do
   use ExUnit.Case
   use Plug.Test
+  import Cldr.Route.TestHelper
 
   doctest Cldr.Route
   doctest MyApp.Router.LocalizedHelpers
@@ -92,6 +93,44 @@ defmodule Cldr.Route.Test do
       assert_raise ArgumentError, ~r/for locale/, fn ->
         MyApp.Router.LocalizedHelpers.chap_path(%Plug.Conn{}, :show, 1)
       end
+    end
+  end
+
+  describe "Interpolate during route generation" do
+    test "interpolating a locale" do
+      assert find_route(MyApp.Router, "/de/locale/pages_de/:page") ==
+        %{
+          helper: "with_locale_de",
+          metadata: %{log: :debug},
+          path: "/de/locale/pages_de/:page",
+          plug: PageController,
+          plug_opts: :show,
+          verb: :get
+        }
+    end
+
+    test "interpolating a language" do
+      assert find_route(MyApp.Router, "/de/language/pages_de/:page") ==
+        %{
+          helper: "with_language_de",
+          metadata: %{log: :debug},
+          path: "/de/language/pages_de/:page",
+          plug: PageController,
+          plug_opts: :show,
+          verb: :get
+        }
+    end
+
+    test "interpolating a territory" do
+      assert find_route(MyApp.Router, "/de/territory/pages_de/:page") ==
+        %{
+          helper: "with_territory_de",
+          metadata: %{log: :debug},
+          path: "/de/territory/pages_de/:page",
+          plug: PageController,
+          plug_opts: :show,
+          verb: :get
+        }
     end
   end
 end

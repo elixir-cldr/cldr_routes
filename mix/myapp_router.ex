@@ -10,6 +10,13 @@ defmodule MyApp.Router do
     end
   end
 
+  # Interpolation
+  localize do
+    get "/#{locale}/locale/pages/:page", PageController, :show, as: "with_locale"
+    get "/#{language}/language/pages/:page", PageController, :show, as: "with_language"
+    get "/#{territory}/territory/pages/:page", PageController, :show, as: "with_territory"
+  end
+
   localize [:en, :fr] do
     resources "/comments", PageController, except: [:delete]
     get "/pages/:page", PageController, :edit, assigns: %{key: :value}
