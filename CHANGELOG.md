@@ -2,13 +2,23 @@
 
 ## Cldr Routes v0.3.0
 
-This is the changelog for Cldr Routes version 0.3.0 released on July 10th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+This is the changelog for Cldr Routes version 0.3.0 released on July 12th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
 
 ### Enhancements
 
 * Add support for `live` routes. Thanks to @ringofhealth for the report. Closes #1.
 
-* Uses the macros from Gettext rather than the functions when generating routes. This means that the mix tasks `gettext.extract` and `gettext.merge` now work as expected.
+* Support interpolating `locale`, `language` and `territory` into a route. Thanks to @rubas for the suggestion. Closes #3. For example:
+
+```elixir
+  localize do
+    get "/#{locale}/locale/pages/:page", PageController, :show, as: "with_locale"
+    get "/#{language}/language/pages/:page", PageController, :show, as: "with_language"
+    get "/#{territory}/territory/pages/:page", PageController, :show, as: "with_territory"
+  end
+```
+
+* Uses the macros from Gettext rather than the functions when generating routes. This means that the mix tasks `gettext.extract` and `gettext.merge` now work as expected. Closes #3.
 
 * Rewrite the `LocalizedHelpers` module that now proxies into the standard Phoenix `Helpers` module rather than maintaining a separate forked module.  As a result:
   * The standard `Helpers` module now generates helper names that have locale suffixes.  That is `user_path` becomes `user_en_path`, `user_fr_path` and so on.
