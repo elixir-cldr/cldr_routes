@@ -1,5 +1,5 @@
 defmodule Cldr.Route do
-  @moduledoc """
+  @moduledoc ~S"""
   Generate localized routes and route helper
   modules.
 
@@ -22,7 +22,7 @@ defmodule Cldr.Route do
   generated that wrap the standard Phoenix helpers to
   supporting generating localised path and URLs.
 
-  ### COnfiguration
+  ### Configuration
 
   A Cldr backend module that configures a `Gettext`
   asosciated backend is required.
