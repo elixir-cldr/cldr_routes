@@ -1,5 +1,5 @@
 defmodule Cldr.Route do
-  @moduledoc """
+  @moduledoc ~S"""
   Generate localized routes and route helper
   modules.
 
