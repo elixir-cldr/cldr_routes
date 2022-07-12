@@ -540,8 +540,10 @@ defmodule Cldr.Route do
         options =
           options
           |> Keyword.put(:as, helper_name(controller_name, locale, configured_helper))
-
-        # |> Keyword.put(:name, name(controller_name))
+          # Preferable we would also override :name so that the
+          # nested hlpers don't propogate the locale. But it appears
+          # that :as overrides :name
+          # |> Keyword.put(:name, name(controller_name))
 
         [controller, options, do_block]
 
