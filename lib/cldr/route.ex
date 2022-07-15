@@ -249,6 +249,7 @@ defmodule Cldr.Route do
 
           quote do
             import Cldr.Route, only: :macros
+            Module.register_attribute __MODULE__, :localized_routes, accumulate: true
             @before_compile Cldr.Route
           end
         end
@@ -286,12 +287,17 @@ defmodule Cldr.Route do
 
   @doc false
   defmacro __before_compile__(env) do
+    alias Cldr.Route.LocalizedHelpers
     routes = env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse()
+    localized_routes = env.module |> Module.get_attribute(:localized_routes) |> Cldr.Route.group_routes()
     routes_with_exprs = Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1)})
     helpers_moduledoc = Module.get_attribute(env.module, :helpers_moduledoc)
 
-    Cldr.Route.LocalizedHelpers.define(env, routes_with_exprs, docs: helpers_moduledoc)
-    []
+    LocalizedHelpers.define(env, routes_with_exprs, docs: helpers_moduledoc)
+
+    quote do
+      def __localized_routes__,  do: unquote(Macro.escape(localized_routes))
+    end
   end
 
   @doc """
@@ -418,8 +424,7 @@ defmodule Cldr.Route do
   # Do the actual translations
   @template_verbs @localizable_verbs -- [:live]
 
-  defmacro localize(cldr_locale_name, {verb, meta, [path | args]})
-           when verb in @template_verbs do
+  defmacro localize(cldr_locale_name, {verb, meta, [path | args]}) when verb in @template_verbs do
     cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
     do_localize(:assigns, cldr_locale_name, cldr_backend, {verb, meta, [path | args]})
   end
@@ -441,9 +446,10 @@ defmodule Cldr.Route do
           """
   end
 
-  def do_localize(field, cldr_locale_name, cldr_backend, {verb, meta, [path | args]} = route) do
+  defp do_localize(field, cldr_locale_name, cldr_backend, {verb, meta, [path | args]} = route) do
     gettext_backend = cldr_backend.__cldr__(:config).gettext
     {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)
+    original_path = escape_interpolation(path)
 
     if cldr_locale.gettext_locale_name do
       translated_path =
@@ -457,11 +463,96 @@ defmodule Cldr.Route do
         add_route_locale_to_assigns(field, args, cldr_locale)
         |> localise_helper(verb, cldr_locale.gettext_locale_name)
 
-      {verb, meta, [translated_path | args]}
+      quote do
+        @localized_routes Cldr.Route.add_route(unquote(verb), unquote(original_path), unquote(args))
+        unquote({verb, meta, [translated_path | args]})
+      end
     else
       warn_no_gettext_locale(cldr_locale_name, route)
-      {verb, meta, [path | args]}
+
+      quote do
+        @localized_routes Cldr.Route.add_route(unquote(verb), unquote(original_path), unquote(args))
+        unquote({verb, meta, [path | args]})
+      end
     end
+  end
+
+  @doc false
+  def add_route(:resources = verb, path, [plug, args]) do
+    %{
+      helper: original_helper_name(plug, args),
+      path: path,
+      plug: plug,
+      plug_opts: args,
+      verb: verb,
+      locales: locale_from_args(args)
+    }
+  end
+
+  def add_route(:resources = verb, path, [plug, args, _do]) do
+    %{
+      helper: original_helper_name(plug, args),
+      path: path,
+      plug: plug,
+      plug_opts: args,
+      verb: verb,
+      locales: locale_from_args(args)
+    }
+  end
+
+  def add_route(:live = verb, path, [plug, args]) do
+    %{
+      helper: original_helper_name(plug, args),
+      path: path,
+      plug: plug,
+      plug_opts: plug,
+      verb: verb,
+      locales: locale_from_args(args)
+    }
+  end
+
+  def add_route(verb, path, [plug, plug_opts, args]) when verb != :resources do
+    %{
+      helper: original_helper_name(plug, args),
+      path: path,
+      plug: plug,
+      plug_opts: plug_opts,
+      verb: verb,
+      locales: locale_from_args(args)
+    }
+  end
+
+  @doc false
+  def group_routes(routes) do
+    routes
+    |> Enum.group_by(&({&1.helper, &1.path, &1.verb}))
+    |> Enum.map(fn {path, routes} ->
+      locales = Enum.map(routes, &(&1.locales))
+      route = hd(routes)
+      {path, Map.put(route, :locales, Enum.uniq(locales))}
+    end)
+    |> Map.new()
+    |> Map.values()
+  end
+
+  defp locale_from_args(args) do
+    (is_map(args[:assigns]) && Map.get(args[:assigns], :cldr_locale)) ||
+    (is_map(args[:private]) && Map.get(args[:private], :cldr_locale)) ||
+    nil
+  end
+
+  defp original_helper_name(plug, args) do
+    cond do
+      locale_from_args(args) && Keyword.get(args, :as) ->
+        Cldr.Route.LocalizedHelpers.strip_locale(to_string(args[:as]))
+
+      Keyword.get(args, :as) ->
+        Keyword.get(args, :as) |> to_string()
+
+      true ->
+        Phoenix.Naming.resource_name(Module.concat([Elixir, plug]), "Controller")
+    end
+    |> Kernel.<>("_path")
   end
 
   # Interpolates the locale, language and territory
@@ -477,6 +568,22 @@ defmodule Cldr.Route do
 
       {{:., _, [Kernel, :to_string]}, _, [{:territory, _, _}]} ->
         to_string(locale.territory) |> String.downcase()
+
+      other ->
+        other
+    end
+  end
+
+  defp escape_interpolation(path) do
+    Macro.prewalk path, fn
+      {{:., _, [Kernel, :to_string]}, _, [{:locale, _, _}]} ->
+        ~S"#{locale}"
+
+      {{:., _, [Kernel, :to_string]}, _, [{:language, _, _}]} ->
+        ~S"#{language}"
+
+      {{:., _, [Kernel, :to_string]}, _, [{:territory, _, _}]} ->
+        ~S"#{territory}"
 
       other ->
         other
@@ -539,11 +646,8 @@ defmodule Cldr.Route do
 
         options =
           options
+          |> Keyword.put(:name, name(controller_name))
           |> Keyword.put(:as, helper_name(controller_name, locale, configured_helper))
-          # Preferable we would also override :name so that the
-          # nested hlpers don't propogate the locale. But it appears
-          # that :as overrides :name
-          # |> Keyword.put(:name, name(controller_name))
 
         [controller, options, do_block]
 
@@ -553,6 +657,10 @@ defmodule Cldr.Route do
         helper = helper_name(controller, locale, configured_helper)
         put_option(args, :as, helper)
     end
+  end
+
+  defp name(controller) do
+    Phoenix.Naming.resource_name(Module.concat(controller), "Controller")
   end
 
   defp helper_name(controller, locale, nil) do

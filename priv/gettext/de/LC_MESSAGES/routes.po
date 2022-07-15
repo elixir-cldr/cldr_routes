@@ -15,27 +15,36 @@ msgstr ""
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
-#: mix/myapp_router.ex:13
-#: mix/myapp_router.ex:13
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:18
-#: mix/myapp_router.ex:27
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:20
+#: mix/myapp_router.ex:20
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:25
+#: mix/myapp_router.ex:34
 msgid "pages"
 msgstr "pages_de"
 
@@ -63,27 +72,83 @@ msgid "objects"
 msgstr "objects_de"
 
 #, elixir-autogen
-#: mix/myapp_router.ex:27
+#: mix/myapp_router.ex:34
 msgid "chapters"
 msgstr "chapters_de"
 
 #, elixir-autogen
-#: mix/myapp_router.ex:13
-#: mix/myapp_router.ex:13
+#: mix/myapp_router.ex:20
+#: mix/myapp_router.ex:20
 msgid "comments"
 msgstr "comments_de"
 
 #, elixir-autogen, elixir-format
-#: mix/myapp_router.ex:37
+#: mix/myapp_router.ex:44
 msgid "columns"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-#: mix/myapp_router.ex:32
+#: mix/myapp_router.ex:39
 msgid "kapitel"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-#: mix/myapp_router.ex:32
+#: mix/myapp_router.ex:39
 msgid "seite"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:50
+msgid "de"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:50
+msgid "en"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:50
+msgid "fr"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+msgid "language"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+msgid "locale"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+#: mix/myapp_router.ex:50
+#: mix/myapp_router.ex:50
+#: mix/myapp_router.ex:50
+msgid "login"
+msgstr "anmeldung"
+
+#, elixir-autogen, elixir-format
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+#: mix/myapp_router.ex:14
+msgid "territory"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+#: mix/myapp_router.ex:14
+msgid "us"
 msgstr ""

@@ -375,18 +375,19 @@ defmodule Cldr.Route.LocalizedHelpers do
     |> Enum.sort()
   end
 
-  defp strip_locale(helper, %Cldr.LanguageTag{} = locale) do
+  @doc false
+  def strip_locale(helper, %Cldr.LanguageTag{} = locale) do
     locale_name = locale.gettext_locale_name
     strip_locale(helper, locale_name)
   end
 
-  defp strip_locale(helper, locale_name) when is_binary(locale_name) do
+  def strip_locale(helper, locale_name) when is_binary(locale_name) do
     helper
     |> String.split(Regex.compile!("(_#{locale_name}_)|(_#{locale_name}$)"), trim: true)
     |> Enum.join("_")
   end
 
-  defp strip_locale(helper) when is_binary(helper) do
+  def strip_locale(helper) when is_binary(helper) do
     locale =
       helper
       |> String.split("_")

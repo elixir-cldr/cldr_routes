@@ -45,6 +45,14 @@ defmodule MyApp.Router do
     live "/columns/:page", PageController
   end
 
+  live_session :non_auth_user do
+    scope "/user/", MyAppWeb do
+      localize do
+        post("/#{locale}/login", UserSessionController, :create)
+      end
+    end
+  end
+
   # Unlocalized route with translatable path
   # elements so we can confirm there is no translation
   get "/not_localized/:page", NotLocalizedController, :show
