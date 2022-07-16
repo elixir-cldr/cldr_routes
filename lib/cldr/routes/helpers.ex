@@ -48,7 +48,7 @@ defmodule Cldr.Route.LocalizedHelpers do
     for {_helper, helper_routes} <- groups,
         {_, [{route, exprs} | _]} <- routes_in_order(helper_routes),
         suffix <- @known_suffixes,
-        Map.has_key?(route.assigns, :cldr_locale) do
+        localized_route?(route) do
       helper_fun_name = strip_locale(route.helper)
       {_bins, vars} = :lists.unzip(exprs.binding)
 
@@ -97,7 +97,7 @@ defmodule Cldr.Route.LocalizedHelpers do
     for {_helper, helper_routes} <- groups,
         {_, [{route, exprs} | _]} <- routes_in_order(helper_routes),
         suffix <- @known_suffixes,
-        !Map.has_key?(route.assigns, :cldr_locale) do
+        !localized_route?(route) do
       {_bins, vars} = :lists.unzip(exprs.binding)
 
       quote do
@@ -128,6 +128,10 @@ defmodule Cldr.Route.LocalizedHelpers do
         end
       end
     end
+  end
+
+  defp localized_route?(route) do
+    Map.has_key?(route.assigns, :cldr_locale) or Map.has_key?(route.private, :cldr_locale)
   end
 
   defp proxy_helpers(groups, helper_module, cldr_backend) do

@@ -53,6 +53,15 @@ defmodule MyApp.Router do
     end
   end
 
+  live_session :default do
+    scope "/", MyAppWeb do
+      localize do
+        live("/#{locale}", HomeLive)
+      end
+    end
+  end
+
+
   # Unlocalized route with translatable path
   # elements so we can confirm there is no translation
   get "/not_localized/:page", NotLocalizedController, :show
