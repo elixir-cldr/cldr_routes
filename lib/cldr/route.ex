@@ -1,16 +1,16 @@
 defmodule Cldr.Route do
-  @moduledoc ~S"""
+  @moduledoc """
   Generate localized routes and route helper
   modules.
 
   This module when `use`d , provides a `localize/1`
   macro that is designed to wrap the standard Phoenix
   route macros such as `get/3`, `put/3` and `resources/3`
-  and localises them for each locale defined in a Gettext
+  and localizes them for each locale defined in a Gettext
   backend module attached to a Cldr backend module.
 
   Translations for the parts of a given route path are
-  translated at compile-time which are then combined into
+  translated at compile-time and are then combined into
   a localised route that is added to the standard
   Phoenix routing framework.
 
@@ -18,9 +18,9 @@ defmodule Cldr.Route do
   terms which can enhance user engagement and content
   relevance.
 
-  Similarly, a localised path and URL helpers are
+  Similarly, localised path and URL helpers are
   generated that wrap the standard Phoenix helpers to
-  supporting generating localised path and URLs.
+  supporting generating localised paths and URLs.
 
   ### Configuration
 
@@ -34,8 +34,7 @@ defmodule Cldr.Route do
   that is configured in a `Cldr` backend module.
 
   For example:
-
-  ```elixir
+  ```
   defmodule MyApp.Cldr do
     use Cldr,
       locales: ["en", "fr"],
@@ -69,14 +68,14 @@ defmodule Cldr.Route do
   end
   ```
 
-  The following routes are generated (assuming that
-  translations are updated in the `Gettext`
-  configuration). For this example, the `:fr`
-  translations are the same as the english
-  text with `_fr` appended.
+  The following routes are generated in the `MyApp.Router`
+  modeul (assuming that translations are updated in the `Gettext`
+  configuration).
+
+  For this example, the `:fr` and `:de` translations are
+  the same as the `:en` text with `_fr` or `_de` appended.
   ```bash
   % mix phx.routes MyApp.Router
-
   page_de_path  GET     /pages_de/:page     PageController :show
   page_en_path  GET     /pages/:page        PageController :show
   page_fr_path  GET     /pages_fr/:page     PageController :show
@@ -84,32 +83,17 @@ defmodule Cldr.Route do
   user_de_path  GET     /users_de/:id/edit  UserController :edit
   user_de_path  GET     /users_de/new       UserController :new
   user_de_path  GET     /users_de/:id       UserController :show
-  user_de_path  POST    /users_de           UserController :create
-  user_de_path  PATCH   /users_de/:id       UserController :update
-                PUT     /users_de/:id       UserController :update
-  user_de_path  DELETE  /users_de/:id       UserController :delete
-  user_en_path  GET     /users              UserController :index
-  user_en_path  GET     /users/:id/edit     UserController :edit
-  user_en_path  GET     /users/new          UserController :new
-  user_en_path  GET     /users/:id          UserController :show
-  user_en_path  POST    /users              UserController :create
-  user_en_path  PATCH   /users/:id          UserController :update
-                PUT     /users/:id          UserController :update
-  user_en_path  DELETE  /users/:id          UserController :delete
-  user_fr_path  GET     /users_fr           UserController :index
-  user_fr_path  GET     /users_fr/:id/edit  UserController :edit
-  user_fr_path  GET     /users_fr/new       UserController :new
-  user_fr_path  GET     /users_fr/:id       UserController :show
-  user_fr_path  POST    /users_fr           UserController :create
-  user_fr_path  PATCH   /users_fr/:id       UserController :update
-                PUT     /users_fr/:id       UserController :update
-  user_fr_path  DELETE  /users_fr/:id       UserController :delete
+  ...
   ```
+
+  It is also possible to emit the routes and route helpers before
+  localization using the `mix phx.routes` task on an automatically
+  generated mini-router. See `h MyApp.Router.LocalizedRoutes`.
 
   ### Interpolating Locale Data
 
   A route may be defined with elements of the locale
-  interpolated into it. These interpolatins are specified
+  interpolated into it. These interpolations are specified
   using the normal `#{}` interpolation syntax. However
   since route translation occurs at compile time only
   the following interpolations are supported:
@@ -121,9 +105,9 @@ defmodule Cldr.Route do
   Some examples are:
   ```elixir
   localize do
-    get "/#{locale}/locale/pages/:page", PageController, :show
-    get "/#{language}/language/pages/:page", PageController, :show
-    get "/#{territory}/territory/pages/:page", PageController, :show
+    get "/\#{locale}/locale/pages/:page", PageController, :show
+    get "/\#{language}/language/pages/:page", PageController, :show
+    get "/\#{territory}/territory/pages/:page", PageController, :show
   end
   ```
 
@@ -131,27 +115,33 @@ defmodule Cldr.Route do
 
   Manually constructing the localized helper names shown in
   the example above would be tedious. Therefore a `LocalizedHelpers`
-  module is geenrated at compile-time. Assuming the router
+  module is generated at compile-time. Assuming the router
   module is called `MyApp.Router` then the full name of the
   localized helper module is `MyApp.Router.LocalizedHelpers`.
 
   The functions on this module are the non-localized versions.
-  For example, assuming the same configuration of routes as the
-  earlier example:
+  Localised routes can be printed by leveraging the `phx.routes`
+  mix task.  For example:
   ```elixir
-  ==> MyApp.Router.LocalizedHelpers.
-  helper/5              page_path/3           page_path/4
-  page_url/3            page_url/4            path/2
-  static_integrity/2    static_path/2         static_url/2
-  url/1                 user_path/2           user_path/3
-  user_path/4           user_url/2            user_url/3
-  user_url/4
+  % mix phx.routes MyApp.Router
+  page_de_path  GET      /pages_de/:page     PageController :show
+  page_en_path  GET      /pages/:page        PageController :show
+  page_fr_path  GET      /pages_fr/:page     PageController :show
+  user_de_path  GET      /users_de           UserController :index
+  user_de_path  GET      /users_de/:id/edit  UserController :edit
+  user_de_path  GET      /users_de/new       UserController :new
+  user_de_path  GET      /users_de/:id       UserController :show
+  user_de_path  POST     /users_de           UserController :create
+  user_de_path  PATCH    /users_de/:id       UserController :update
+                PUT   /users_de/:id       UserController :update
+  .....
   ```
 
-  The functions on the `LocalizedHelpers` module all respect
-  the current locale, based upon `Cldr.get_locale/1`, and will
+  The functions on the `MyApp.Router.LocalizedHelpers` module all
+  respect the current locale, based upon `Cldr.get_locale/1`, and will
   delegate to the appropriate localized function in the
-  `Helpers` function created automatically at compile time.
+  `MyApp.Router.Helpers` module created automatically by Phoenix
+  at compile time.
 
   ### Configuring Localized Helpers as default
 
@@ -305,11 +295,15 @@ defmodule Cldr.Route do
         This module exists only to host route definitions.
 
         Localised routes can be printed by leveraging
-        the Phoenix route formatter.  For example:
+        the `phx.routes` mix task.  For example:
 
-            iex> #{inspect __MODULE__}
-            ...> |> Phoenix.Router.ConsoleFormatter.format()
-            ...> |> IO.puts
+            % mix phx.routes #{inspect(__MODULE__)}
+            page_path  GET  /pages/:page     PageController :show
+            user_path  GET  /users           UserController :index
+            user_path  GET  /users/:id/edit  UserController :edit
+            user_path  GET  /users/new       UserController :new
+            user_path  GET  /users/:id       UserController :show
+            .....
 
         """
 
