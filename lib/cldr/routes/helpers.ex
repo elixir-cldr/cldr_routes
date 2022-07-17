@@ -44,7 +44,7 @@ defmodule Cldr.Route.LocalizedHelpers do
     Module.create(localized_helper_module, code, line: env.line, file: env.file)
   end
 
-  def localized_helpers(groups, cldr_backend) do
+  defp localized_helpers(groups, cldr_backend) do
     for {_helper, helper_routes} <- groups,
         {_, [{route, exprs} | _]} <- routes_in_order(helper_routes),
         suffix <- @known_suffixes,
@@ -319,9 +319,7 @@ defmodule Cldr.Route.LocalizedHelpers do
     end
   end
 
-  @doc """
-  Callback for generate router catch alls.
-  """
+  @doc false
   @dialyzer {:nowarn_function, raise_route_error: 9}
   def raise_route_error(mod, fun, arity, action, locale, helper_module, helper, routes, params) do
     cond do
