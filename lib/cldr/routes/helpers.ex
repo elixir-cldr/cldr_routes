@@ -322,6 +322,7 @@ defmodule Cldr.Route.LocalizedHelpers do
   @doc """
   Callback for generate router catch alls.
   """
+  @dialyzer {:nowarn_function, raise_route_error: 9}
   def raise_route_error(mod, fun, arity, action, locale, helper_module, helper, routes, params) do
     cond do
       localized_fun_exists?(helper_module, helper, fun, arity) ->

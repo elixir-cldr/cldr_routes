@@ -33,7 +33,7 @@ defmodule CldrRoutes.MixProject do
       ],
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore_warnings",
-        plt_add_apps: ~w(jason mix)a
+        plt_add_apps: ~w(jason mix phoenix_live_view)a
       ]
     ]
   end
