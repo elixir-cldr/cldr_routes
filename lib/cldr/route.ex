@@ -94,7 +94,7 @@ defmodule Cldr.Route do
 
   A route may be defined with elements of the locale
   interpolated into it. These interpolations are specified
-  using the normal `#{}` interpolation syntax. However
+  using the normal `\#{}` interpolation syntax. However
   since route translation occurs at compile time only
   the following interpolations are supported:
 

@@ -50,7 +50,7 @@ end
 
 *Note* the addition of `Cldr.Route` to the `:providers` configuration key is required.
 
-### Define Localized Routes
+## Define Localized Routes
 
 Now we can configure the router module to use the `localize/1` macro by adding `use MyApp.Cldr.Routes` to the module and invoke the `localize/1` macro to wrap the required routes. `use MyApp.Cldr.Routes` must be added *after* `use Phoenix.Router`. For example:
 
@@ -99,7 +99,7 @@ user_fr_path  PATCH   /users_fr/:id       UserController :update
 user_fr_path  DELETE  /users_fr/:id       UserController :delete
 ```
 
-### Interpolating Locale Data
+## Interpolating Locale Data
 
 A route may be defined with elements of the locale interpolated into it. These interpolatins are specified using the normal `#{}` interpolation syntax. However since route translation occurs at compile time only the following interpolations are supported:
 
@@ -116,7 +116,7 @@ localize do
 end
 ```
 
-### Localized Helpers
+## Localized Helpers
 
 Manually constructing the localized helper names shown in the example above would be tedious. Therefore a `LocalizedHelpers` module is geenrated at compile-time. Assuming the router module is called `MyApp.Router` then the full name of the localized helper module is `MyApp.Router.LocalizedHelpers`.
 
@@ -172,7 +172,7 @@ end
 ```
 will result in the automatic use of the localized helpers rather than the standard helpers.
 
-### Translations
+## Translations
 
 In order for routes to be localized, translations must be provided for each path segment. This translation is performed by `dgettext/3` with the domain "routes". Therefore for each configured locale, a "routes.pot" file is required containing the path segment translations for that locale.
 
@@ -210,5 +210,5 @@ def deps do
 end
 ```
 
-The docs can be found at <https://hexdocs.pm/ex_cldr_routes>.
+The docs can be found at https://hexdocs.pm/ex_cldr_routes.
 

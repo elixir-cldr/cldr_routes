@@ -21,16 +21,7 @@ defmodule CldrRoutes.MixProject do
       name: "Cldr Routes",
       source_url: "https://github.com/elixir-cldr/cldr_routes",
       homepage_url: "https://hex.pm/packages/ex_cldr_routes",
-      docs: [
-        source_ref: "v#{@version}",
-        main: "readme",
-        logo: "logo.png",
-        extras: [
-          "README.md",
-          "LICENSE.md",
-          "CHANGELOG.md"
-        ]
-      ],
+      docs: docs(),
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore_warnings",
         plt_add_apps: ~w(jason mix phoenix_live_view)a
@@ -41,6 +32,21 @@ defmodule CldrRoutes.MixProject do
   def application do
     [
       extra_applications: [:logger]
+    ]
+  end
+  
+  def docs do
+    [
+      formatters: ["html"],
+      source_ref: "v#{@version}",
+      main: "readme",
+      logo: "logo.png",
+      extras: [
+        "README.md",
+        "LICENSE.md",
+        "CHANGELOG.md"
+      ],
+      skip_undefined_reference_warnings_on: ["changelog", "CHANGELOG.md"]
     ]
   end
 

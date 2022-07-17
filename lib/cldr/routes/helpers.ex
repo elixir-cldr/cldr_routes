@@ -9,6 +9,11 @@ defmodule Cldr.Route.LocalizedHelpers do
   """
   @known_suffixes ["path", "url"]
 
+  @doc """
+  For a given set of routes, define a LocalizedHelpers
+  module that implements localized helpers.
+
+  """
   def define(env, routes, opts \\ []) do
     localized_helper_module = Module.concat([env.module, LocalizedHelpers])
     helper_module = Module.concat([env.module, Helpers])
@@ -391,6 +396,7 @@ defmodule Cldr.Route.LocalizedHelpers do
     |> Enum.join(joiner)
   end
 
+  @doc false
   def strip_locale(helper) when is_binary(helper) do
     locale =
       helper
