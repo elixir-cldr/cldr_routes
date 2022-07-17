@@ -2,7 +2,7 @@
 
 ## Cldr Routes v0.3.0
 
-This is the changelog for Cldr Routes version 0.3.0 released on _____, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+This is the changelog for Cldr Routes version 0.3.0 released on July 17th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
 
 ### Enhancements
 
