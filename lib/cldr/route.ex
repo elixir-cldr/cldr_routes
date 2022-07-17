@@ -69,7 +69,7 @@ defmodule Cldr.Route do
   ```
 
   The following routes are generated in the `MyApp.Router`
-  modeul (assuming that translations are updated in the `Gettext`
+  module (assuming that translations are updated in the `Gettext`
   configuration).
 
   For this example, the `:fr` and `:de` translations are

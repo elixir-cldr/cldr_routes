@@ -66,10 +66,9 @@ defmodule MyApp.Router do
 end
 ```
 
-The following routes are generated (assuming that translations are updated in the `Gettext` configuration). For this example, the `:fr` translations are the same as the english text with `_fr` appended.
+The following routes are generated (assuming that translations are updated in the `Gettext` configuration). For this example, the `:fr` translations are the same as the `:en` text with `_fr` appended.
 ```bash
 % mix phx.routes MyApp.Router
-
 page_de_path  GET     /pages_de/:page     PageController :show
 page_en_path  GET     /pages/:page        PageController :show
 page_fr_path  GET     /pages_fr/:page     PageController :show
@@ -77,26 +76,7 @@ user_de_path  GET     /users_de           UserController :index
 user_de_path  GET     /users_de/:id/edit  UserController :edit
 user_de_path  GET     /users_de/new       UserController :new
 user_de_path  GET     /users_de/:id       UserController :show
-user_de_path  POST    /users_de           UserController :create
-user_de_path  PATCH   /users_de/:id       UserController :update
-              PUT     /users_de/:id       UserController :update
-user_de_path  DELETE  /users_de/:id       UserController :delete
-user_en_path  GET     /users              UserController :index
-user_en_path  GET     /users/:id/edit     UserController :edit
-user_en_path  GET     /users/new          UserController :new
-user_en_path  GET     /users/:id          UserController :show
-user_en_path  POST    /users              UserController :create
-user_en_path  PATCH   /users/:id          UserController :update
-              PUT     /users/:id          UserController :update
-user_en_path  DELETE  /users/:id          UserController :delete
-user_fr_path  GET     /users_fr           UserController :index
-user_fr_path  GET     /users_fr/:id/edit  UserController :edit
-user_fr_path  GET     /users_fr/new       UserController :new
-user_fr_path  GET     /users_fr/:id       UserController :show
-user_fr_path  POST    /users_fr           UserController :create
-user_fr_path  PATCH   /users_fr/:id       UserController :update
-              PUT     /users_fr/:id       UserController :update
-user_fr_path  DELETE  /users_fr/:id       UserController :delete
+...
 ```
 
 ## Interpolating Locale Data
