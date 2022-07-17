@@ -2,7 +2,7 @@
 
 ## Cldr Routes v0.3.0
 
-This is the changelog for Cldr Routes version 0.3.0 released on July 12th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+This is the changelog for Cldr Routes version 0.3.0 released on _____, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
 
 ### Enhancements
 
@@ -23,6 +23,8 @@ This is the changelog for Cldr Routes version 0.3.0 released on July 12th, 2022.
 * Rewrite the `LocalizedHelpers` module that now proxies into the standard Phoenix `Helpers` module rather than maintaining a separate forked module.  As a result:
   * The standard `Helpers` module now generates helper names that have locale suffixes.  That is `user_path` becomes `user_en_path`, `user_fr_path` and so on.
   * The `LocalizedHelpers` module hosts the standard helper names (like `user_path`) which will then call the appropriate standard helper depending on the result of `Cldr.get_locale/1`.
+
+* Add functions to output the localised routes. At compile time a module called `MyApp.Router.LocalizedRoutes` is created.  This module hosts a `__routes__/0` function which can be passed as an argument to the Phoenix standard ` Phoenix.Router.ConsoleFormatter.format/1` function that returns a string representation of configured localized routes. These can then be `IO.puts/1` as required.  In the next release a mix task will automate this process.
 
 Thanks to @rubas and @ringofhealth for their extreme patience while I worked this through. Closes #1, and #4.
 

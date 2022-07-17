@@ -249,7 +249,6 @@ defmodule Cldr.Route do
 
           quote do
             import Cldr.Route, only: :macros
-            Module.register_attribute __MODULE__, :localized_routes, accumulate: true
             @before_compile Cldr.Route
           end
         end
@@ -265,15 +264,15 @@ defmodule Cldr.Route do
   @doc false
   def confirm_backend_has_gettext!(backend, %Cldr.Config{gettext: nil}) do
     raise ArgumentError,
-          """
-          The Cldr backend #{inspect(backend)} does not have a Gettext
-          module configured.
+    """
+    The Cldr backend #{inspect(backend)} does not have a Gettext
+    module configured.
 
-          A Gettext module must be configured in order to define localized
-          routes. In addition, translations must be provided for the Gettext
-          backend under the "routes" domain (ie in a file "routes.pot" for
-          each configured Gettext locale).
-          """
+    A Gettext module must be configured in order to define localized
+    routes. In addition, translations must be provided for the Gettext
+    backend under the "routes" domain (ie in a file "routes.pot" for
+    each configured Gettext locale).
+    """
   end
 
   def confirm_backend_has_gettext!(_backend, %Cldr.Config{} = _config) do
@@ -289,15 +288,44 @@ defmodule Cldr.Route do
   defmacro __before_compile__(env) do
     alias Cldr.Route.LocalizedHelpers
     routes = env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse()
-    localized_routes = env.module |> Module.get_attribute(:localized_routes) |> Cldr.Route.group_routes()
+    localized_routes = Cldr.Route.routes(routes)
+
+    # Remove bookkeeping data in :private
+    Module.delete_attribute(env.module, :phoenix_routes)
+    Module.register_attribute(env.module, :phoenix_routes, [])
+    Module.put_attribute(env.module, :phoenix_routes, Cldr.Route.delete_original_path(routes))
+
     routes_with_exprs = Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1)})
     helpers_moduledoc = Module.get_attribute(env.module, :helpers_moduledoc)
-
     LocalizedHelpers.define(env, routes_with_exprs, docs: helpers_moduledoc)
 
     quote do
-      def __localized_routes__,  do: unquote(Macro.escape(localized_routes))
+      defmodule LocalizedRoutes do
+        @moduledoc """
+        This module exists only to host route definitions.
+
+        Localised routes can be printed by leveraging
+        the Phoenix route formatter.  For example:
+
+            iex> #{inspect __MODULE__}
+            ...> |> Phoenix.Router.ConsoleFormatter.format()
+            ...> |> IO.puts
+
+        """
+
+        def __routes__ do
+          unquote(Macro.escape(localized_routes))
+        end
+      end
     end
+  end
+
+  @doc false
+  def delete_original_path(routes) do
+    Enum.map(routes, fn route ->
+      private = Map.delete(route.private, :original_path)
+      Map.put(route, :private, private)
+    end)
   end
 
   @doc """
@@ -405,17 +433,14 @@ defmodule Cldr.Route do
   end
 
   # Rewrite nested resources; guard against infinite recursion
-  defmacro localize(
-             locale,
-             {:resources, _meta, [path, controller, [do: {fun, _, _args}] = nested_resource]}
-           )
-           when fun != :localize do
+  defmacro localize(locale, {:resources, _, [path, controller, [do: {fun, _, _}] = nested]})
+      when fun != :localize do
+    nested = localize_nested_resources(locale, nested)
+
     quote do
       localize unquote(locale) do
         resources unquote(path), unquote(controller) do
-          localize unquote(locale) do
-            unquote(nested_resource)
-          end
+          unquote(nested)
         end
       end
     end
@@ -440,16 +465,16 @@ defmodule Cldr.Route do
     args = Enum.map_join(args, ", ", &inspect/1)
 
     raise ArgumentError,
-          """
-          Invalid route for localization: #{verb} #{inspect(path)}, #{inspect(args)}
-          Allowed localizable routes are #{inspect(@localizable_verbs)}
-          """
+    """
+    Invalid route for localization: #{verb} #{inspect(path)}, #{inspect(args)}
+    Allowed localizable routes are #{inspect(@localizable_verbs)}
+    """
   end
 
   defp do_localize(field, cldr_locale_name, cldr_backend, {verb, meta, [path | args]} = route) do
     gettext_backend = cldr_backend.__cldr__(:config).gettext
     {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)
-    original_path = escape_interpolation(path)
+    {original_path, _} = escape_interpolation(path) |> Code.eval_quoted()
 
     if cldr_locale.gettext_locale_name do
       translated_path =
@@ -460,104 +485,50 @@ defmodule Cldr.Route do
         |> translate_path(gettext_backend, cldr_locale.gettext_locale_name)
 
       args =
-        add_route_locale_to_assigns(field, args, cldr_locale)
+        add_to_route(args, field, :cldr_locale, cldr_locale)
+        |> add_to_route(:private, :original_path, original_path)
         |> localise_helper(verb, cldr_locale.gettext_locale_name)
 
       quote do
-        @localized_routes Cldr.Route.add_route(unquote(verb), unquote(original_path), unquote(args))
         unquote({verb, meta, [translated_path | args]})
       end
     else
       warn_no_gettext_locale(cldr_locale_name, route)
 
       quote do
-        @localized_routes Cldr.Route.add_route(unquote(verb), unquote(original_path), unquote(args))
         unquote({verb, meta, [path | args]})
       end
     end
   end
 
-  @doc false
-  def add_route(:resources = verb, path, [plug, args]) do
-    %{
-      helper: original_helper_name(plug, args),
-      path: path,
-      plug: plug,
-      plug_opts: args,
-      verb: verb,
-      locales: locale_from_args(args)
-    }
-  end
+  defp localize_nested_resources(locale, nested) do
+    Macro.postwalk nested, fn
+      {:resources, _, [_path, _meta, _args, [do: {:resources, _, _}]]} = resources ->
+        quote do
+          localize unquote(locale) do
+            unquote(resources)
+          end
+        end
 
-  def add_route(:resources = verb, path, [plug, args, _do]) do
-    %{
-      helper: original_helper_name(plug, args),
-      path: path,
-      plug: plug,
-      plug_opts: args,
-      verb: verb,
-      locales: locale_from_args(args)
-    }
-  end
+      {:resources, _, [_path, _meta, [do: {:resources, _, _}]]} = resources ->
+        quote do
+          localize unquote(locale) do
+            unquote(resources)
+          end
+        end
 
-  def add_route(:live = verb, path, [plug, args]) do
-    %{
-      helper: original_helper_name(plug, args),
-      path: path,
-      plug: plug,
-      plug_opts: plug,
-      verb: verb,
-      locales: locale_from_args(args)
-    }
-  end
+      {:resources, _, _} = route ->
+        quote do
+          localize unquote(locale), unquote(route)
+        end
 
-  def add_route(verb, path, [plug, plug_opts, args]) when verb != :resources do
-    %{
-      helper: original_helper_name(plug, args),
-      path: path,
-      plug: plug,
-      plug_opts: plug_opts,
-      verb: verb,
-      locales: locale_from_args(args)
-    }
-  end
-
-  @doc false
-  def group_routes(routes) do
-    routes
-    |> Enum.group_by(&({&1.helper, &1.path, &1.verb}))
-    |> Enum.map(fn {path, routes} ->
-      locales = Enum.map(routes, &(&1.locales))
-      route = hd(routes)
-      {path, Map.put(route, :locales, Enum.uniq(locales))}
-    end)
-    |> Map.new()
-    |> Map.values()
-  end
-
-  defp locale_from_args(args) do
-    (is_map(args[:assigns]) && Map.get(args[:assigns], :cldr_locale)) ||
-    (is_map(args[:private]) && Map.get(args[:private], :cldr_locale)) ||
-    nil
-  end
-
-  defp original_helper_name(plug, args) do
-    cond do
-      locale_from_args(args) && Keyword.get(args, :as) ->
-        Cldr.Route.LocalizedHelpers.strip_locale(to_string(args[:as]))
-
-      Keyword.get(args, :as) ->
-        Keyword.get(args, :as) |> to_string()
-
-      true ->
-        Phoenix.Naming.resource_name(Module.concat([Elixir, plug]), "Controller")
+      other ->
+        other
     end
-    |> Kernel.<>("_path")
   end
 
   # Interpolates the locale, language and territory
   # into he path by splicing the AST
-
   defp interpolate(path, locale) do
     Macro.prewalk path, fn
       {{:., _, [Kernel, :to_string]}, _, [{:locale, _, _}]} ->
@@ -568,22 +539,6 @@ defmodule Cldr.Route do
 
       {{:., _, [Kernel, :to_string]}, _, [{:territory, _, _}]} ->
         to_string(locale.territory) |> String.downcase()
-
-      other ->
-        other
-    end
-  end
-
-  defp escape_interpolation(path) do
-    Macro.prewalk path, fn
-      {{:., _, [Kernel, :to_string]}, _, [{:locale, _, _}]} ->
-        ~S"#{locale}"
-
-      {{:., _, [Kernel, :to_string]}, _, [{:language, _, _}]} ->
-        ~S"#{language}"
-
-      {{:., _, [Kernel, :to_string]}, _, [{:territory, _, _}]} ->
-        ~S"#{territory}"
 
       other ->
         other
@@ -711,7 +666,6 @@ defmodule Cldr.Route do
     path
     |> String.split(@path_separator)
     |> Enum.map(&translate_part(gettext_backend, locale, &1))
-    |> List.insert_at(0, "/")
     |> reduce_parts()
   end
 
@@ -741,22 +695,22 @@ defmodule Cldr.Route do
   # do: block in the correct place
 
   @doc false
-  def add_route_locale_to_assigns(field, args, locale) do
+  def add_to_route(args, field, key, value) do
     case Enum.reverse(args) do
       [[do: block], last | rest] ->
         last
-        |> put_route_locale(field, locale)
+        |> put_route(field, key, value)
         |> combine(rest, do: block)
         |> Enum.reverse()
 
       [last | rest] ->
         last
-        |> put_route_locale(field, locale)
+        |> put_route(field, key, value)
         |> combine(rest)
         |> Enum.reverse()
 
       [] = last ->
-        put_route_locale(last, field, locale)
+        put_route(last, field, key, value)
     end
   end
 
@@ -769,9 +723,9 @@ defmodule Cldr.Route do
   defp combine(first, rest, block), do: [block, first | rest]
 
   # Keyword list of options - update or add :assigns
-  defp put_route_locale([{key, _value} | _rest] = options, field, locale) when is_atom(key) do
-    {assigns, options} = Keyword.pop(options, :assigns)
-    options = [Keyword.put(options, field, put_locale(assigns, locale))]
+  defp put_route([{first, _value} | _rest] = options, field, key, value) when is_atom(first) do
+    {field_content, options} = Keyword.pop(options, field)
+    options = [Keyword.put(options, field, put_value(field_content, key, value))]
 
     quote do
       unquote(options)
@@ -779,10 +733,10 @@ defmodule Cldr.Route do
   end
 
   # Not a keyword list - fabricate one
-  defp put_route_locale(last, field, locale) do
+  defp put_route(last, field, key, value) do
     options =
       quote do
-        [{unquote(field), %{cldr_locale: unquote(Macro.escape(locale))}}]
+        [{unquote(field), %{unquote(key) => unquote(Macro.escape(value))}}]
       end
 
     [options, last]
@@ -790,17 +744,15 @@ defmodule Cldr.Route do
 
   @doc false
   # No assigns, so fabricate one
-  def put_locale(nil, locale) do
+  def put_value(nil, key, value) do
     quote do
-      %{cldr_locale: unquote(Macro.escape(locale))}
+      %{unquote(key) => unquote(Macro.escape(value))}
     end
   end
 
   # Existing assigns, add to them
-  def put_locale({:%{}, _meta, _key_values} = assigns, locale) do
-    quote do
-      Map.put(unquote(assigns), :cldr_locale, unquote(Macro.escape(locale)))
-    end
+  def put_value({:%{}, meta, key_values}, key, value) do
+    {:%{}, meta, [{key, Macro.escape(value)} | key_values]}
   end
 
   # Testing uniqeiness of a routes excluding options
@@ -819,5 +771,186 @@ defmodule Cldr.Route do
   defp canonical_route({:localize, _, [[do: {verb, meta, [path, controller, action]}]]})
        when is_atom(action) do
     {verb, meta, [path, controller, action]}
+  end
+
+  @route_keys [:verb, :path, :plug, :plug_opts, :helper, :metadata]
+
+  @doc false
+  def routes(routes) do
+    routes
+    |> Enum.map(&strip_locale_from_path/1)
+    |> Enum.map(&strip_locale_from_helper/1)
+    |> Enum.map(&reconstruct_original_path/1)
+    |> Enum.map(&add_locales_to_metadata/1)
+    |> reduce_routes()
+    |> Enum.map(&Map.take(&1, @route_keys))
+  end
+
+  defp reduce_routes([]) do
+    []
+  end
+
+  # When the routes match except for locale
+  defp reduce_routes([
+      %{path: path, helper: helper, verb: verb} = first,
+      %{path: path, helper: helper, verb: verb} = second | rest]) do
+    locales = Enum.uniq([locale_from_args(second) | first.metadata.locales])
+    metadata = Map.put(first.metadata, :locales, locales)
+    reduce_routes([%{first | metadata: metadata} | rest])
+  end
+
+  defp reduce_routes([first | rest]) do
+    [first | reduce_routes(rest)]
+  end
+
+  defp add_locales_to_metadata(%{assigns: %{cldr_locale: locale}} = route) do
+    metadata = Map.put(route.metadata, :locales, [locale])
+    %{route | metadata: metadata}
+  end
+
+  defp add_locales_to_metadata(%{private: %{cldr_locale: locale}} = route) do
+    metadata = Map.put(route.metadata, :locales, [locale])
+    %{route | metadata: metadata}
+  end
+
+  defp add_locales_to_metadata(other) do
+    other
+  end
+
+  defp strip_locale_from_helper(%{assigns: %{cldr_locale: locale}} = route) do
+    do_strip_locale_from_helper(route, locale)
+  end
+
+  defp strip_locale_from_helper(%{private: %{cldr_locale: locale}} = route) do
+    do_strip_locale_from_helper(route, locale)
+  end
+
+  defp strip_locale_from_helper(%{private: %{}} = other) do
+    other
+  end
+
+  defp do_strip_locale_from_helper(%{helper: nil} = route, _locale) do
+    route
+  end
+
+  defp do_strip_locale_from_helper(%{helper: helper} = route, locale) do
+    helper = Cldr.Route.LocalizedHelpers.strip_locale(helper, locale)
+    %{route | helper: helper}
+  end
+
+  defp strip_locale_from_path(%{assigns: %{cldr_locale: locale}} = route) do
+    do_strip_locale_from_path(route, locale)
+  end
+
+  defp strip_locale_from_path(%{private: %{cldr_locale: locale}} = route) do
+    do_strip_locale_from_path(route, locale)
+  end
+
+  defp strip_locale_from_path(%{private: %{}} = other) do
+    other
+  end
+
+  defp do_strip_locale_from_path(%{path: path} = route, locale) do
+    path = Cldr.Route.LocalizedHelpers.strip_locale(path, locale, "/")
+    %{route | path: path}
+  end
+
+  defp reconstruct_original_path(%{assigns: %{cldr_locale: _locale}} = route) do
+    do_reconstruct_original_path(route)
+  end
+
+  defp reconstruct_original_path(%{private: %{cldr_locale: _locale}} = route) do
+    do_reconstruct_original_path(route)
+  end
+
+  defp reconstruct_original_path(%{private: %{}} = other) do
+    other
+  end
+
+  defp do_reconstruct_original_path(%{path: path, private: %{original_path: original}} = route) do
+    if same_segment_length(path, original) do
+      private = Map.delete(route.private, :original_path)
+      %{route | private: private, path: original}
+    else
+      path = blend_paths(path, original)
+      private = Map.delete(route.private, :original_path)
+      %{route | private: private, path: path}
+    end
+  end
+
+  defp same_segment_length(a, b) do
+    length(String.split(a, @path_separator)) == length(String.split(b, @path_separator))
+  end
+
+  # Need to take care of routes which have /new, /edit
+  # When it ends in /new then we patch before the new
+  # When it ends in /edit then we pathc before the [:id, edit]
+  # If the segments of the original match the leading segments of
+  # the path then we do nothing.
+
+  # TODO Clean this up
+
+  defp blend_paths(path, original) do
+    path_segs = String.split(path, @path_separator)
+    orig_segs = String.split(original, @path_separator)
+
+    cond do
+      Enum.take(path_segs, length(orig_segs)) == orig_segs ->
+        path
+
+      Enum.take(path_segs, -1) == ["new"] ->
+        new_segs = Enum.take(path_segs, -1)
+        start_segs = Enum.take(path_segs, length(path_segs) - length(orig_segs) - 1)
+
+        start_segs ++ tl(orig_segs) ++ new_segs
+        |> Enum.join(@path_separator)
+
+      String.starts_with?(hd(Enum.take(path_segs, -1)), @interpolate) ->
+        new_segs = Enum.take(path_segs, -1)
+        start_segs = Enum.take(path_segs, length(path_segs) - length(orig_segs) - 1)
+
+        start_segs ++ tl(orig_segs) ++ new_segs
+        |> Enum.join(@path_separator)
+
+      Enum.take(path_segs, -1) == ["edit"] ->
+        edit_segs = Enum.take(path_segs, -2)
+        start_segs = Enum.take(path_segs, length(path_segs) - length(orig_segs) - 2)
+
+        start_segs ++ tl(orig_segs) ++ edit_segs
+        |> Enum.join(@path_separator)
+
+      true ->
+        start_segs = Enum.take(path_segs, length(path_segs) - length(orig_segs))
+        start_segs ++ tl(orig_segs)
+        |> Enum.join(@path_separator)
+    end
+  end
+
+  defp locale_from_args(%{assigns: %{cldr_locale: locale}}) do
+    locale
+  end
+
+  defp locale_from_args(%{private: %{cldr_locale: locale}}) do
+    locale
+  end
+
+  defp locale_from_args(_other) do
+    nil
+  end
+
+  defp escape_interpolation(path) do
+    Macro.prewalk path, fn
+      {{:., _, [Kernel, :to_string]}, _, [{:locale, _, _}]} ->
+        ~S"#{locale}"
+
+      {{:., _, [Kernel, :to_string]}, _, [{:language, _, _}]} ->
+        ~S"#{language}"
+
+      {{:., _, [Kernel, :to_string]}, _, [{:territory, _, _}]} ->
+        ~S"#{territory}"
+
+      other ->
+        other
+    end
   end
 end

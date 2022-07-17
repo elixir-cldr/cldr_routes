@@ -31,9 +31,9 @@ defmodule Cldr.Route.LocalizedHelpers do
     code =
       quote do
         @moduledoc unquote(docs) &&
-                     """
-                     Module with localized helpers generated from #{inspect(unquote(env.module))}.
-                     """
+        """
+        Module with localized helpers generated from #{inspect(unquote(env.module))}.
+        """
         unquote_splicing(localized_helpers)
         unquote_splicing(non_localized_helpers)
         unquote_splicing(proxy_helpers)
@@ -380,15 +380,16 @@ defmodule Cldr.Route.LocalizedHelpers do
   end
 
   @doc false
-  def strip_locale(helper, %Cldr.LanguageTag{} = locale) do
+  def strip_locale(helper, locale, joiner \\ "_")
+  def strip_locale(helper, %Cldr.LanguageTag{} = locale, joiner) do
     locale_name = locale.gettext_locale_name
-    strip_locale(helper, locale_name)
+    strip_locale(helper, locale_name, joiner)
   end
 
-  def strip_locale(helper, locale_name) when is_binary(locale_name) do
+  def strip_locale(helper, locale_name, joiner) when is_binary(locale_name) do
     helper
-    |> String.split(Regex.compile!("(_#{locale_name}_)|(_#{locale_name}$)"), trim: true)
-    |> Enum.join("_")
+    |> String.split(Regex.compile!("(_#{locale_name}[_/])|(_#{locale_name}$)"), trim: true)
+    |> Enum.join(joiner)
   end
 
   def strip_locale(helper) when is_binary(helper) do

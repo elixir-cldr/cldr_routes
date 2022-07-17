@@ -3,10 +3,13 @@ defmodule MyApp.Router do
   import Phoenix.LiveView.Router
   use MyApp.Cldr.Routes
 
+  # Nested routes to an arbitrary level (testing with 3)
   localize do
     get "/pages/:page", PageController, :show, assigns: %{key: :value}
     resources "/users", UserController do
-      resources "/faces", UserController
+      resources "/faces", FaceController, except: [:delete] do
+        resources "/#{locale}/visages", VisageController
+      end
     end
   end
 
@@ -17,11 +20,13 @@ defmodule MyApp.Router do
     get "/#{territory}/territory/pages/:page", PageController, :show, as: "with_territory"
   end
 
+  # Specific set of locales
   localize [:en, :fr] do
     resources "/comments", PageController, except: [:delete]
     get "/pages/:page", PageController, :edit, assigns: %{key: :value}
   end
 
+  # Test all verbs
   localize do
     get "/pages/:page", PageController, :show
     patch "/pages/:page", PageController, :update
@@ -31,6 +36,7 @@ defmodule MyApp.Router do
     head "/pages/:page", PageController, :head
   end
 
+  # Routes with existing :as is honoured
   localize "fr" do
     get "/chapters/:page", PageController, :show, as: "chap"
     put "/pages/:page", PageController, :update
@@ -45,6 +51,7 @@ defmodule MyApp.Router do
     live "/columns/:page", PageController
   end
 
+  # Live routes
   live_session :non_auth_user do
     scope "/user/", MyAppWeb do
       localize do
@@ -60,7 +67,6 @@ defmodule MyApp.Router do
       end
     end
   end
-
 
   # Unlocalized route with translatable path
   # elements so we can confirm there is no translation
