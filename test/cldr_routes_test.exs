@@ -3,6 +3,12 @@ defmodule Cldr.Route.Test do
   use Plug.Test
   import Cldr.Route.TestHelper
 
+  import Phoenix.ConnTest,
+    only: [
+      build_conn: 0,
+      get: 2
+    ]
+
   doctest Cldr.Route
   doctest MyApp.Router.LocalizedHelpers
 
@@ -131,6 +137,18 @@ defmodule Cldr.Route.Test do
           plug_opts: :show,
           verb: :get
         }
+    end
+
+    @endpoint MyApp.Router
+
+    test "That assigns propogate to the connection" do
+      {:ok, locale} = MyApp.Cldr.validate_locale(:en)
+      conn = get(build_conn(), "/users/1")
+      assert conn.assigns.cldr_locale == locale
+
+      {:ok, locale} = MyApp.Cldr.validate_locale(:de)
+      conn = get(build_conn(), "/users_de/1")
+      assert conn.assigns.cldr_locale == locale
     end
   end
 end
