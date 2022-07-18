@@ -351,7 +351,7 @@ defmodule Cldr.Route do
   defmacro localize(do: route) do
     cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
     gettext_backend = cldr_backend.__cldr__(:config).gettext
-    cldr_locale_names = cldr_backend.known_locale_names()
+    cldr_locale_names = locales_from_unique_gettext_locales(cldr_backend)
 
     unless gettext_backend do
       raise "Cldr backend #{cldr_backend} does not have a configured Gettext backend."
@@ -521,6 +521,15 @@ defmodule Cldr.Route do
     end
   end
 
+  defp locales_from_unique_gettext_locales(cldr_backend) do
+    cldr_backend.known_locale_names()
+    |> Enum.map(&cldr_backend.validate_locale/1)
+    |> Enum.map(&elem(&1, 1))
+    |> Enum.uniq_by(&(&1.gettext_locale_name))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(&(&1.cldr_locale_name))
+  end
+
   # Interpolates the locale, language and territory
   # into he path by splicing the AST
   defp interpolate(path, locale) do
@@ -643,7 +652,8 @@ defmodule Cldr.Route do
 
     IO.warn(
       "No known gettext locale for #{inspect(cldr_locale_name)}. " <>
-        "No #{inspect(cldr_locale_name)} localized routes will be generated for #{inspect(verb)} #{inspect(path)}",
+        "No #{inspect(cldr_locale_name)} localized routes will be generated " <>
+        "for #{inspect(verb)} #{Macro.to_string(path)}",
       []
     )
 
@@ -822,7 +832,7 @@ defmodule Cldr.Route do
     other
   end
 
-  defp do_strip_locale_from_helper(%{helper: nil} = route, _locale) do
+  defp strip_locale_from_helper(%{helper: nil} = route) do
     route
   end
 

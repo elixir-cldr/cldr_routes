@@ -100,6 +100,22 @@ defmodule Cldr.Route.Test do
         MyApp.Router.LocalizedHelpers.chap_path(%Plug.Conn{}, :show, 1)
       end
     end
+
+    test "that helpers match on the gettext locale name" do
+      {:ok, locale} = MyApp.Cldr.validate_locale("en-GB")
+      Cldr.put_locale(locale)
+      assert MyApp.Router.LocalizedHelpers.user_path(%Plug.Conn{}, :index) == "/users"
+
+      {:ok, locale} = MyApp.Cldr.validate_locale("en-AU")
+      Cldr.put_locale locale
+      assert MyApp.Router.LocalizedHelpers.user_path(%Plug.Conn{}, :index) == "/users"
+
+      {:ok, locale} = MyApp.Cldr.validate_locale("es")
+      Cldr.put_locale locale
+      assert_raise ArgumentError, ~r/no function clause for MyApp.Router.LocalizedHelpers.user_path/, fn ->
+        MyApp.Router.LocalizedHelpers.user_path(%Plug.Conn{}, :index)
+      end
+    end
   end
 
   describe "Interpolate during route generation" do

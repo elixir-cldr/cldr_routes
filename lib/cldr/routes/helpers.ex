@@ -154,7 +154,7 @@ defmodule Cldr.Route.LocalizedHelpers do
         def helper(
               unquote(helper_fun_name),
               unquote(suffix),
-              unquote(Macro.escape(locale)),
+              %Cldr.LanguageTag{gettext_locale_name: unquote(locale.gettext_locale_name)},
               conn_or_endpoint,
               plug_opts,
               unquote_splicing(vars),
@@ -384,16 +384,24 @@ defmodule Cldr.Route.LocalizedHelpers do
   end
 
   @doc false
-  def strip_locale(helper, locale, joiner \\ "_")
-  def strip_locale(helper, %Cldr.LanguageTag{} = locale, joiner) do
+  def strip_locale(helper, locale)
+  def strip_locale(helper, %Cldr.LanguageTag{} = locale) do
     locale_name = locale.gettext_locale_name
-    strip_locale(helper, locale_name, joiner)
+    strip_locale(helper, locale_name)
   end
 
-  def strip_locale(helper, locale_name, joiner) when is_binary(locale_name) do
+  def strip_locale(helper, nil) do
     helper
-    |> String.split(Regex.compile!("(_#{locale_name}[_/])|(_#{locale_name}$)"), trim: true)
-    |> Enum.join(joiner)
+  end
+
+  def strip_locale(nil = helper, _locale) do
+    helper
+  end
+
+  def strip_locale(helper, locale_name) when is_binary(locale_name) do
+    helper
+    |> String.split(Regex.compile!("(_#{locale_name}_)|(_#{locale_name}$)"), trim: true)
+    |> Enum.join("_")
   end
 
   @doc false
