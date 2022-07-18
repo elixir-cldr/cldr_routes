@@ -794,7 +794,7 @@ defmodule Cldr.Route do
   defp reduce_routes([
       %{path: path, helper: helper, verb: verb} = first,
       %{path: path, helper: helper, verb: verb} = second | rest]) do
-    locales = Enum.uniq([locale_from_args(second) | first.metadata.locales])
+    locales = Enum.uniq([locale_from_args(second) | first.metadata.locales]) |> Enum.sort()
     metadata = Map.put(first.metadata, :locales, locales)
     reduce_routes([%{first | metadata: metadata} | rest])
   end
@@ -802,6 +802,13 @@ defmodule Cldr.Route do
   defp reduce_routes([first | rest]) do
     [first | reduce_routes(rest)]
   end
+
+  # We add the locales for a given route into the metadata field
+  # of the route. This means later processing can identify which locales
+  # are applicable to which routes.  Note this applies only to the
+  # routes being stored in `LocalizedRoutes`, not the routes
+  # stored in `MyApp.Router` - the latter are the active routes
+  # used by Phoenix for route detection.
 
   defp add_locales_to_metadata(%{assigns: %{cldr_locale: locale}} = route) do
     metadata = Map.put(route.metadata, :locales, [locale])
@@ -816,6 +823,10 @@ defmodule Cldr.Route do
   defp add_locales_to_metadata(other) do
     other
   end
+
+  # For a given route, remove the locale suffixes (like "_fr") from
+  # the helper names to recover the original helper name that
+  # we define in `MyApp.Router.LocalizedHelpers`
 
   defp strip_locale_from_helper(%{assigns: %{cldr_locale: locale}} = route) do
     do_strip_locale_from_helper(route, locale)
@@ -872,7 +883,7 @@ defmodule Cldr.Route do
       private = Map.delete(route.private, :original_path)
       %{route | private: private, path: original}
     else
-      path = blend_paths(path, original)
+      path = merge_paths(path, original)
       private = Map.delete(route.private, :original_path)
       %{route | private: private, path: path}
     end
@@ -890,7 +901,7 @@ defmodule Cldr.Route do
 
   # TODO Clean this up
 
-  defp blend_paths(path, original) do
+  defp merge_paths(path, original) do
     path_segs = String.split(path, @path_separator)
     orig_segs = String.split(original, @path_separator)
 
