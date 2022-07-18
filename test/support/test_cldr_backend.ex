@@ -1,8 +1,8 @@
 require Cldr.Route
 
-defmodule MyApp.Cldr do
+defmodule TestBackend.Cldr do
   use Cldr,
-    locales: ["en", "fr", "de", "en-GB"],
+    locales: ["es"],
     default_locale: "en",
     gettext: MyAppWeb.Gettext,
     providers: [Cldr.Route]
