@@ -772,7 +772,6 @@ defmodule Cldr.Route do
   @doc false
   def routes(routes) do
     routes
-    |> Enum.map(&strip_locale_from_path/1)
     |> Enum.map(&strip_locale_from_helper/1)
     |> Enum.map(&reconstruct_original_path/1)
     |> Enum.map(&add_locales_to_metadata/1)
@@ -830,23 +829,6 @@ defmodule Cldr.Route do
   defp do_strip_locale_from_helper(%{helper: helper} = route, locale) do
     helper = Cldr.Route.LocalizedHelpers.strip_locale(helper, locale)
     %{route | helper: helper}
-  end
-
-  defp strip_locale_from_path(%{assigns: %{cldr_locale: locale}} = route) do
-    do_strip_locale_from_path(route, locale)
-  end
-
-  defp strip_locale_from_path(%{private: %{cldr_locale: locale}} = route) do
-    do_strip_locale_from_path(route, locale)
-  end
-
-  defp strip_locale_from_path(%{private: %{}} = other) do
-    other
-  end
-
-  defp do_strip_locale_from_path(%{path: path} = route, locale) do
-    path = Cldr.Route.LocalizedHelpers.strip_locale(path, locale, "/")
-    %{route | path: path}
   end
 
   defp reconstruct_original_path(%{assigns: %{cldr_locale: _locale}} = route) do
