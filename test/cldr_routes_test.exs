@@ -2,6 +2,7 @@ defmodule Cldr.Route.Test do
   use ExUnit.Case
   use Plug.Test
   import Cldr.Route.TestHelper
+  import ExUnit.CaptureIO
 
   import Phoenix.ConnTest,
     only: [
@@ -99,6 +100,39 @@ defmodule Cldr.Route.Test do
       assert_raise ArgumentError, ~r/for locale/, fn ->
         MyApp.Router.LocalizedHelpers.chap_path(%Plug.Conn{}, :show, 1)
       end
+    end
+
+    test "that helpers match on the gettext locale name" do
+      {:ok, locale} = MyApp.Cldr.validate_locale("en-GB")
+      Cldr.put_locale(locale)
+      assert MyApp.Router.LocalizedHelpers.user_path(%Plug.Conn{}, :index) == "/users"
+
+      {:ok, locale} = MyApp.Cldr.validate_locale("en-AU")
+      Cldr.put_locale locale
+      assert MyApp.Router.LocalizedHelpers.user_path(%Plug.Conn{}, :index) == "/users"
+    end
+
+    test "An warning is printed when there is no gettext locale and raises if helper is called" do
+      assert capture_io(:stderr, fn ->
+        defmodule MyTestApp.Router do
+          use Phoenix.Router
+          use TestBackend.Cldr.Routes
+
+          # Nested routes to an arbitrary level (testing with 3)
+          localize do
+            get "/pages/:page", PageController, :show, assigns: %{key: :value}
+          end
+        end
+      end) =~ "No known gettext locale for :es"
+
+      capture_io(fn ->
+        {:ok, locale} = TestBackend.Cldr.validate_locale("es")
+        TestBackend.Cldr.put_locale(locale)
+
+        assert_raise ArgumentError, ~r/no function clause .*LocalizedHelpers.page_path/, fn ->
+          apply(Cldr.Route.Test.MyTestApp.Router.LocalizedHelpers, :page_path, [%Plug.Conn{}, :show, 1])
+        end
+      end)
     end
   end
 

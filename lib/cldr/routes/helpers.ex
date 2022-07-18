@@ -9,6 +9,11 @@ defmodule Cldr.Route.LocalizedHelpers do
   """
   @known_suffixes ["path", "url"]
 
+  @doc """
+  For a given set of routes, define a LocalizedHelpers
+  module that implements localized helpers.
+
+  """
   def define(env, routes, opts \\ []) do
     localized_helper_module = Module.concat([env.module, LocalizedHelpers])
     helper_module = Module.concat([env.module, Helpers])
@@ -44,7 +49,7 @@ defmodule Cldr.Route.LocalizedHelpers do
     Module.create(localized_helper_module, code, line: env.line, file: env.file)
   end
 
-  def localized_helpers(groups, cldr_backend) do
+  defp localized_helpers(groups, cldr_backend) do
     for {_helper, helper_routes} <- groups,
         {_, [{route, exprs} | _]} <- routes_in_order(helper_routes),
         suffix <- @known_suffixes,
@@ -149,7 +154,7 @@ defmodule Cldr.Route.LocalizedHelpers do
         def helper(
               unquote(helper_fun_name),
               unquote(suffix),
-              unquote(Macro.escape(locale)),
+              %Cldr.LanguageTag{gettext_locale_name: unquote(locale.gettext_locale_name)},
               conn_or_endpoint,
               plug_opts,
               unquote_splicing(vars),
@@ -319,9 +324,8 @@ defmodule Cldr.Route.LocalizedHelpers do
     end
   end
 
-  @doc """
-  Callback for generate router catch alls.
-  """
+  @doc false
+  @dialyzer {:nowarn_function, raise_route_error: 9}
   def raise_route_error(mod, fun, arity, action, locale, helper_module, helper, routes, params) do
     cond do
       localized_fun_exists?(helper_module, helper, fun, arity) ->
@@ -380,18 +384,27 @@ defmodule Cldr.Route.LocalizedHelpers do
   end
 
   @doc false
-  def strip_locale(helper, locale, joiner \\ "_")
-  def strip_locale(helper, %Cldr.LanguageTag{} = locale, joiner) do
+  def strip_locale(helper, locale)
+  def strip_locale(helper, %Cldr.LanguageTag{} = locale) do
     locale_name = locale.gettext_locale_name
-    strip_locale(helper, locale_name, joiner)
+    strip_locale(helper, locale_name)
   end
 
-  def strip_locale(helper, locale_name, joiner) when is_binary(locale_name) do
+  def strip_locale(helper, nil) do
     helper
-    |> String.split(Regex.compile!("(_#{locale_name}[_/])|(_#{locale_name}$)"), trim: true)
-    |> Enum.join(joiner)
   end
 
+  def strip_locale(nil = helper, _locale) do
+    helper
+  end
+
+  def strip_locale(helper, locale_name) when is_binary(locale_name) do
+    helper
+    |> String.split(Regex.compile!("(_#{locale_name}_)|(_#{locale_name}$)"), trim: true)
+    |> Enum.join("_")
+  end
+
+  @doc false
   def strip_locale(helper) when is_binary(helper) do
     locale =
       helper

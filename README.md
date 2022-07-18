@@ -50,7 +50,7 @@ end
 
 *Note* the addition of `Cldr.Route` to the `:providers` configuration key is required.
 
-### Define Localized Routes
+## Define Localized Routes
 
 Now we can configure the router module to use the `localize/1` macro by adding `use MyApp.Cldr.Routes` to the module and invoke the `localize/1` macro to wrap the required routes. `use MyApp.Cldr.Routes` must be added *after* `use Phoenix.Router`. For example:
 
@@ -66,10 +66,9 @@ defmodule MyApp.Router do
 end
 ```
 
-The following routes are generated (assuming that translations are updated in the `Gettext` configuration). For this example, the `:fr` translations are the same as the english text with `_fr` appended.
+The following routes are generated (assuming that translations are updated in the `Gettext` configuration). For this example, the `:fr` translations are the same as the `:en` text with `_fr` appended.
 ```bash
 % mix phx.routes MyApp.Router
-
 page_de_path  GET     /pages_de/:page     PageController :show
 page_en_path  GET     /pages/:page        PageController :show
 page_fr_path  GET     /pages_fr/:page     PageController :show
@@ -77,29 +76,10 @@ user_de_path  GET     /users_de           UserController :index
 user_de_path  GET     /users_de/:id/edit  UserController :edit
 user_de_path  GET     /users_de/new       UserController :new
 user_de_path  GET     /users_de/:id       UserController :show
-user_de_path  POST    /users_de           UserController :create
-user_de_path  PATCH   /users_de/:id       UserController :update
-              PUT     /users_de/:id       UserController :update
-user_de_path  DELETE  /users_de/:id       UserController :delete
-user_en_path  GET     /users              UserController :index
-user_en_path  GET     /users/:id/edit     UserController :edit
-user_en_path  GET     /users/new          UserController :new
-user_en_path  GET     /users/:id          UserController :show
-user_en_path  POST    /users              UserController :create
-user_en_path  PATCH   /users/:id          UserController :update
-              PUT     /users/:id          UserController :update
-user_en_path  DELETE  /users/:id          UserController :delete
-user_fr_path  GET     /users_fr           UserController :index
-user_fr_path  GET     /users_fr/:id/edit  UserController :edit
-user_fr_path  GET     /users_fr/new       UserController :new
-user_fr_path  GET     /users_fr/:id       UserController :show
-user_fr_path  POST    /users_fr           UserController :create
-user_fr_path  PATCH   /users_fr/:id       UserController :update
-              PUT     /users_fr/:id       UserController :update
-user_fr_path  DELETE  /users_fr/:id       UserController :delete
+...
 ```
 
-### Interpolating Locale Data
+## Interpolating Locale Data
 
 A route may be defined with elements of the locale interpolated into it. These interpolatins are specified using the normal `#{}` interpolation syntax. However since route translation occurs at compile time only the following interpolations are supported:
 
@@ -116,7 +96,7 @@ localize do
 end
 ```
 
-### Localized Helpers
+## Localized Helpers
 
 Manually constructing the localized helper names shown in the example above would be tedious. Therefore a `LocalizedHelpers` module is geenrated at compile-time. Assuming the router module is called `MyApp.Router` then the full name of the localized helper module is `MyApp.Router.LocalizedHelpers`.
 
@@ -172,7 +152,7 @@ end
 ```
 will result in the automatic use of the localized helpers rather than the standard helpers.
 
-### Translations
+## Translations
 
 In order for routes to be localized, translations must be provided for each path segment. This translation is performed by `dgettext/3` with the domain "routes". Therefore for each configured locale, a "routes.pot" file is required containing the path segment translations for that locale.
 
@@ -210,5 +190,5 @@ def deps do
 end
 ```
 
-The docs can be found at <https://hexdocs.pm/ex_cldr_routes>.
+The docs can be found at https://hexdocs.pm/ex_cldr_routes.
 
