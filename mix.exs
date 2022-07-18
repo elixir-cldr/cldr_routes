@@ -1,7 +1,7 @@
 defmodule CldrRoutes.MixProject do
   use Mix.Project
 
-  @version "0.3.0"
+  @version "0.4.0"
 
   def project do
     [
@@ -34,7 +34,7 @@ defmodule CldrRoutes.MixProject do
       extra_applications: [:logger]
     ]
   end
-  
+
   def docs do
     [
       formatters: ["html"],

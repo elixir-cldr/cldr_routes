@@ -1,5 +1,15 @@
 # Changelog
 
+## Cldr Routes v0.4.0
+
+This is the changelog for Cldr Routes version 0.4.0 released on July 19th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+
+### Bug Fixes
+
+* Fixed Localized route helpers were matching on the full locale, not on the `:gettext_locale_name` field. Thanks to @rubas for the report and collaboration. Closes #6.
+
+* `mix phx.routes MyApp.Router.LocalizedRoutes` was attempting to "un"-translate the routes. This is no longer the case since doing so hides information required by developers. Closes #8.
+
 ## Cldr Routes v0.3.0
 
 This is the changelog for Cldr Routes version 0.3.0 released on July 17th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
