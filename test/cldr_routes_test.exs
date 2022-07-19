@@ -10,6 +10,9 @@ defmodule Cldr.Route.Test do
       get: 2
     ]
 
+  alias Cldr.Route.Test.Backend
+  alias Cldr.Route.Test.MyTestApp.Router
+
   doctest Cldr.Route
   doctest MyApp.Router.LocalizedHelpers
 
@@ -116,7 +119,7 @@ defmodule Cldr.Route.Test do
       assert capture_io(:stderr, fn ->
         defmodule MyTestApp.Router do
           use Phoenix.Router
-          use TestBackend.Cldr.Routes
+          use Backend.Cldr.Routes
 
           # Nested routes to an arbitrary level (testing with 3)
           localize do
@@ -126,11 +129,11 @@ defmodule Cldr.Route.Test do
       end) =~ "No known gettext locale for :es"
 
       capture_io(fn ->
-        {:ok, locale} = TestBackend.Cldr.validate_locale("es")
-        TestBackend.Cldr.put_locale(locale)
+        {:ok, locale} = Backend.Cldr.validate_locale("es")
+        Backend.Cldr.put_locale(locale)
 
         assert_raise ArgumentError, ~r/no function clause .*LocalizedHelpers.page_path/, fn ->
-          apply(Cldr.Route.Test.MyTestApp.Router.LocalizedHelpers, :page_path, [%Plug.Conn{}, :show, 1])
+          apply(Router.LocalizedHelpers, :page_path, [%Plug.Conn{}, :show, 1])
         end
       end)
     end

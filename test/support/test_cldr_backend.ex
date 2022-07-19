@@ -1,6 +1,6 @@
 require Cldr.Route
 
-defmodule TestBackend.Cldr do
+defmodule Cldr.Route.Test.Backend.Cldr do
   use Cldr,
     locales: ["es"],
     default_locale: "en",
