@@ -10,7 +10,7 @@ defmodule Cldr.Route.Test do
       get: 2
     ]
 
-  alias Cldr.Route.Test.Backend
+  alias Test.Backend
   alias Cldr.Route.Test.MyTestApp.Router
 
   doctest Cldr.Route
