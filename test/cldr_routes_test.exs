@@ -64,7 +64,7 @@ defmodule Cldr.Route.Test do
       assert Map.get(conn.private, :phoenix_action) == :show
       assert Map.get(conn.private, :phoenix_controller) == PageController
       assert conn.path_info == ["pages_fr", "1"]
-      assert %{cldr_locale: %Cldr.LanguageTag{cldr_locale_name: :fr}} = conn.assigns
+      assert %{cldr_locale: %Cldr.LanguageTag{cldr_locale_name: :fr}} = conn.private
     end
   end
 
@@ -123,7 +123,7 @@ defmodule Cldr.Route.Test do
 
           # Nested routes to an arbitrary level (testing with 3)
           localize do
-            get "/pages/:page", PageController, :show, assigns: %{key: :value}
+            get "/pages/:page", PageController, :show, private: %{key: :value}
           end
         end
       end) =~ "No known gettext locale for :es"
@@ -178,14 +178,14 @@ defmodule Cldr.Route.Test do
 
     @endpoint MyApp.Router
 
-    test "That assigns propogate to the connection" do
+    test "That :private propogate to the connection" do
       {:ok, locale} = MyApp.Cldr.validate_locale(:en)
       conn = get(build_conn(), "/users/1")
-      assert conn.assigns.cldr_locale == locale
+      assert conn.private.cldr_locale == locale
 
       {:ok, locale} = MyApp.Cldr.validate_locale(:de)
       conn = get(build_conn(), "/users_de/1")
-      assert conn.assigns.cldr_locale == locale
+      assert conn.private.cldr_locale == locale
     end
   end
 end

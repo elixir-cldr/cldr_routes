@@ -441,14 +441,7 @@ defmodule Cldr.Route do
   end
 
   # Do the actual translations
-  @template_verbs @localizable_verbs -- [:live]
-
-  defmacro localize(cldr_locale_name, {verb, meta, [path | args]}) when verb in @template_verbs do
-    cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
-    do_localize(:assigns, cldr_locale_name, cldr_backend, {verb, meta, [path | args]})
-  end
-
-  defmacro localize(cldr_locale_name, {:live = verb, meta, [path | args]}) do
+  defmacro localize(cldr_locale_name, {verb, meta, [path | args]}) when verb in @localizable_verbs do
     cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
     do_localize(:private, cldr_locale_name, cldr_backend, {verb, meta, [path | args]})
   end
@@ -726,7 +719,7 @@ defmodule Cldr.Route do
 
   defp combine(first, rest, block), do: [block, first | rest]
 
-  # Keyword list of options - update or add :assigns
+  # Keyword list of options - update or add :private
   defp put_route([{first, _value} | _rest] = options, field, key, value) when is_atom(first) do
     {field_content, options} = Keyword.pop(options, field)
     options = [Keyword.put(options, field, put_value(field_content, key, value))]

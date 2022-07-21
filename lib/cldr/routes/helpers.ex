@@ -136,7 +136,7 @@ defmodule Cldr.Route.LocalizedHelpers do
   end
 
   defp localized_route?(route) do
-    Map.has_key?(route.assigns, :cldr_locale) or Map.has_key?(route.private, :cldr_locale)
+    Map.has_key?(route.private, :cldr_locale)
   end
 
   defp proxy_helpers(groups, helper_module, cldr_backend) do
