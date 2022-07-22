@@ -739,20 +739,17 @@ defmodule Cldr.Route do
     [options, last]
   end
 
-  @doc false
-  # No assigns, so fabricate one
-  def put_value(nil, key, value) do
+  defp put_value(nil, key, value) do
     quote do
       %{unquote(key) => unquote(Macro.escape(value))}
     end
   end
 
-  # Existing assigns, add to them
-  def put_value({:%{}, meta, key_values}, key, value) do
+  defp put_value({:%{}, meta, key_values}, key, value) do
     {:%{}, meta, [{key, Macro.escape(value)} | key_values]}
   end
 
-  # Testing uniqeiness of a routes excluding options
+  # Testing uniqeness of a routes excluding options
   # We use this to eliminate duplicate routes which can occur if
   # there is no translation for a term and therefore the original
   # term is returned.
@@ -776,27 +773,26 @@ defmodule Cldr.Route do
   def routes(routes) do
     routes
     |> Enum.map(&strip_locale_from_helper/1)
-    |> Enum.map(&reconstruct_original_path/1)
     |> Enum.map(&add_locales_to_metadata/1)
-    |> reduce_routes()
+    |> group_locales_by_path_helper_verb()
     |> Enum.map(&Map.take(&1, @route_keys))
   end
 
-  defp reduce_routes([]) do
+  defp group_locales_by_path_helper_verb([]) do
     []
   end
 
   # When the routes match except for locale
-  defp reduce_routes([
+  defp group_locales_by_path_helper_verb([
       %{path: path, helper: helper, verb: verb} = first,
       %{path: path, helper: helper, verb: verb} = second | rest]) do
     locales = Enum.uniq([locale_from_args(second) | first.metadata.locales]) |> Enum.sort()
     metadata = Map.put(first.metadata, :locales, locales)
-    reduce_routes([%{first | metadata: metadata} | rest])
+    group_locales_by_path_helper_verb([%{first | metadata: metadata} | rest])
   end
 
-  defp reduce_routes([first | rest]) do
-    [first | reduce_routes(rest)]
+  defp group_locales_by_path_helper_verb([first | rest]) do
+    [first | group_locales_by_path_helper_verb(rest)]
   end
 
   # We add the locales for a given route into the metadata field
@@ -843,77 +839,6 @@ defmodule Cldr.Route do
   defp do_strip_locale_from_helper(%{helper: helper} = route, locale) do
     helper = Cldr.Route.LocalizedHelpers.strip_locale(helper, locale)
     %{route | helper: helper}
-  end
-
-  defp reconstruct_original_path(%{assigns: %{cldr_locale: _locale}} = route) do
-    do_reconstruct_original_path(route)
-  end
-
-  defp reconstruct_original_path(%{private: %{cldr_locale: _locale}} = route) do
-    do_reconstruct_original_path(route)
-  end
-
-  defp reconstruct_original_path(%{private: %{}} = other) do
-    other
-  end
-
-  defp do_reconstruct_original_path(%{path: path, private: %{original_path: original}} = route) do
-    if same_segment_length(path, original) do
-      private = Map.delete(route.private, :original_path)
-      %{route | private: private, path: original}
-    else
-      path = merge_paths(path, original)
-      private = Map.delete(route.private, :original_path)
-      %{route | private: private, path: path}
-    end
-  end
-
-  defp same_segment_length(a, b) do
-    length(String.split(a, @path_separator)) == length(String.split(b, @path_separator))
-  end
-
-  # Need to take care of routes which have /new, /edit
-  # When it ends in /new then we patch before the new
-  # When it ends in /edit then we pathc before the [:id, edit]
-  # If the segments of the original match the leading segments of
-  # the path then we do nothing.
-
-  # TODO Clean this up
-
-  defp merge_paths(path, original) do
-    path_segs = String.split(path, @path_separator)
-    orig_segs = String.split(original, @path_separator)
-
-    cond do
-      Enum.take(path_segs, length(orig_segs)) == orig_segs ->
-        path
-
-      Enum.take(path_segs, -1) == ["new"] ->
-        new_segs = Enum.take(path_segs, -1)
-        start_segs = Enum.take(path_segs, length(path_segs) - length(orig_segs) - 1)
-
-        start_segs ++ tl(orig_segs) ++ new_segs
-        |> Enum.join(@path_separator)
-
-      String.starts_with?(hd(Enum.take(path_segs, -1)), @interpolate) ->
-        new_segs = Enum.take(path_segs, -1)
-        start_segs = Enum.take(path_segs, length(path_segs) - length(orig_segs) - 1)
-
-        start_segs ++ tl(orig_segs) ++ new_segs
-        |> Enum.join(@path_separator)
-
-      Enum.take(path_segs, -1) == ["edit"] ->
-        edit_segs = Enum.take(path_segs, -2)
-        start_segs = Enum.take(path_segs, length(path_segs) - length(orig_segs) - 2)
-
-        start_segs ++ tl(orig_segs) ++ edit_segs
-        |> Enum.join(@path_separator)
-
-      true ->
-        start_segs = Enum.take(path_segs, length(path_segs) - length(orig_segs))
-        start_segs ++ tl(orig_segs)
-        |> Enum.join(@path_separator)
-    end
   end
 
   defp locale_from_args(%{assigns: %{cldr_locale: locale}}) do

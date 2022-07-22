@@ -19,7 +19,7 @@ Similarly, localised path and URL helpers are generated that wrap the standard [
 
 A `Cldr` backend module that configures an associated `gettext` backend is required. In addition, a `Gettext` backend must be configured and added to the `Cldr` configuration.
 
-Path parts (the parts between "/") are translated at compile time using `Gettext`. Therefore localization can only be applied to locales that are defined in a [gettext backend module](https://hexdocs.pm/gettext/Gettext.html#module-using-gettext) that is attached to a `Cldr` backend module. 
+Path parts (the parts between "/") are translated at compile time using `Gettext`. Therefore localization can only be applied to locales that are defined in a [gettext backend module](https://hexdocs.pm/gettext/Gettext.html#module-using-gettext) that is attached to a `Cldr` backend module.
 
 The following steps should be followed to set up the configuration for localized routes and helpers:
 
@@ -100,17 +100,7 @@ end
 
 Manually constructing the localized helper names shown in the example above would be tedious. Therefore a `LocalizedHelpers` module is geenrated at compile-time. Assuming the router module is called `MyApp.Router` then the full name of the localized helper module is `MyApp.Router.LocalizedHelpers`.
 
-The functions on this module are the non-localized versions. For example, assuming the same configuration of routes as the earlier example:
-
-```elixir
-iex> MyApp.Router.LocalizedHelpers.
-helper/5              page_path/3           page_path/4
-page_url/3            page_url/4            path/2
-static_integrity/2    static_path/2         static_url/2
-url/1                 user_path/2           user_path/3
-user_path/4           user_url/2            user_url/3
-user_url/4
-```
+The functions on this module are the non-localized versions that should be used by applications (they delegate ultimately to the localized routes based upon the current locale).
 
 The functions on the `LocalizedHelpers` module all respect the current locale, based upon `Cldr.get_locale/1`, and will delegate to the appropriate localized function in the `Helpers` function created automatically at compile time. For example:
 ```elixir
@@ -123,6 +113,29 @@ iex> MyApp.Router.LocalizedHelpers.page_path %Plug.Conn{}, :show, 1
 ```
 
 *Note* The localized helpers translate the path based upon the `:gettext_locale_name` for the currently set `Cldr` locale. It is the developers responsibility to ensure that the locale is set appropriately before calling any localized path helpers.
+
+### Introspecting localized routes
+
+For convenience in introspecting routes, a module called `MyApp.Router.LocalizedRoutes` is generated that can be used with the `mix phx.routes` mix task. For example:
+
+```bash
+% cldr_routes % mix phx.routes MyApp.Router.LocalizedRoutes
+page_path  GET     /pages_de/:page     PageController :show
+page_path  GET     /pages/:page        PageController :show
+page_path  GET     /pages_fr/:page     PageController :show
+user_path  GET     /users_de           UserController :index
+user_path  GET     /users_de/:id/edit  UserController :edit
+user_path  GET     /users_de/new       UserController :new
+...
+```
+
+In addition, each localized path stores the `Cldr` locale in the `:private` field for the route under the `:cldr_locale` key. This allows the developer to recognise which locale was used to generate the localized route.
+
+This information is also used by functions in the [ex_cldr_plugs](https://hex.pm/packages/ex_cldr_plugs) library to:
+
+* Identify the users locale from the route in `Cldr.Plug.PutLocale`
+* Store the identified locale in the session in `Cldr.Plug.PutSession`
+* Propogate the locale from the session into a LiveView process during the `on_mount/3` callback with `Cldr.Session.put_locale/2`
 
 ### Configuring Localized Helpers as default
 
@@ -174,9 +187,6 @@ Using the example Cldr backend that has "en" and "fr" Gettext locales then the d
 
 The `mix` tasks `gettext.extract` and `gettext.merge` can be used to support the extraction of routing segments and to create new translation locales.
 
-## Assigns
-
-For each localized path, the `Cldr` locale is added to the `:assigns` for the route under the `:cldr_locale` key. This allows the developer to recognise which locale was used to generate the localized route.
 
 ## Installation
 
@@ -185,7 +195,7 @@ The package can be installed by adding `ex_cldr_routes` to your list of dependen
 ```elixir
 def deps do
   [
-    {:ex_cldr_routes, "~> 0.3.0"}
+    {:ex_cldr_routes, "~> 0.5.0"}
   ]
 end
 ```
