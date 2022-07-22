@@ -2,15 +2,15 @@
 
 ## Cldr Routes v0.5.0
 
-This is the changelog for Cldr Routes version 0.5.0 released on July 21st, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+This is the changelog for Cldr Routes version 0.5.0 released on July 22nd, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
 
 ### Bug Fixes
 
 * Propogate locales on the `localize` macro to nested resources
 
-### Incompatible change
+### Breaking change
 
-* The locale is now stored in the `:private` field of the `conn` for both live routes and other routes.
+* The locale is now stored in the `:private` field of the `conn` for both live routes and other routes. It was previously stored in the `:assigns` field for non-live routes.
 
 ## Cldr Routes v0.4.0
 
