@@ -178,7 +178,7 @@ defmodule Cldr.Route.Test do
 
     @endpoint MyApp.Router
 
-    test "That :private propogate to the connection" do
+    test "That :private propagates to the connection" do
       {:ok, locale} = MyApp.Cldr.validate_locale(:en)
       conn = get(build_conn(), "/users/1")
       assert conn.private.cldr_locale == locale
@@ -211,8 +211,8 @@ defmodule Cldr.Route.Test do
            ["<Link: ", "http://localhost/users", "; rel=alternate; hreflang=", "\"en\"", " />"],
            "\n",
            ["<Link: ", "http://localhost/users_fr", "; rel=alternate; hreflang=", "\"fr\"", " />"]
-           ]
-         }
+          ]
+        }
 
        assert header ==
          "<Link: http://localhost/users_de; rel=alternate; hreflang=\"de\" />\n" <>
