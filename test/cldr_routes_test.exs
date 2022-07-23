@@ -219,5 +219,17 @@ defmodule Cldr.Route.Test do
          "<Link: http://localhost/users/1; rel=alternate; hreflang=\"en\" />\n" <>
          "<Link: http://localhost/users_fr/1; rel=alternate; hreflang=\"fr\" />"
     end
+
+    test "hreflang test helper for non-localized route" do
+      conn = get(build_conn(), "/not_localized/1")
+
+      links = MyApp.Router.LocalizedHelpers.not_localized_links(conn, :show, 1)
+      header_io_data = MyApp.Router.LocalizedHelpers.hreflang_link_headers(links)
+      header = Phoenix.HTML.safe_to_string(header_io_data)
+
+      assert links == %{}
+      assert header_io_data == {:safe, []}
+      assert header == ""
+    end
   end
 end

@@ -364,19 +364,33 @@ defmodule Cldr.Route.LocalizedHelpers do
 
   defp href_link_helpers(routes) do
     for {helper, routes_by_locale} <- helper_by_locale(routes),
-        {vars, locales} <- routes_by_locale,
-        locales != [] and !is_nil(hd(locales)) do
-      quote do
-        def unquote(:"#{helper}_links")(conn_or_endpoint, plug_opts, unquote_splicing(vars)) do
-          for locale <- unquote(Macro.escape(locales)) do
-            Cldr.with_locale locale, fn ->
-              {
-                Map.fetch!(locale, :requested_locale_name),
-                unquote(:"#{helper}_url")(conn_or_endpoint, plug_opts, unquote_splicing(vars))
-              }
-            end
+        {vars, locales} <- routes_by_locale do
+      if locales == [] do
+        quiet_vars = Enum.map(vars, fn var ->
+          quote do
+            _ = unquote(var)
           end
-          |> Map.new()
+        end)
+
+        quote generated: true, location: :keep do
+          def unquote(:"#{helper}_links")(conn_or_endpoint, plug_opts, unquote_splicing(vars)) do
+            unquote_splicing(quiet_vars)
+            Map.new()
+          end
+        end
+      else
+        quote generated: true, location: :keep  do
+          def unquote(:"#{helper}_links")(conn_or_endpoint, plug_opts, unquote_splicing(vars)) do
+            for locale <- unquote(Macro.escape(locales)) do
+              Cldr.with_locale locale, fn ->
+                {
+                  Map.fetch!(locale, :requested_locale_name),
+                  unquote(:"#{helper}_url")(conn_or_endpoint, plug_opts, unquote_splicing(vars))
+                }
+              end
+            end
+            |> Map.new()
+          end
         end
       end
     end
@@ -403,7 +417,10 @@ defmodule Cldr.Route.LocalizedHelpers do
       fn {_route, exprs} -> elem(:lists.unzip(exprs.binding), 1) end,
       fn {route, _exprs} -> route.private[:cldr_locale]  end
     )
-    |> Enum.map(fn {vars, locales} -> {vars, Enum.uniq(locales)} end)
+    |> Enum.map(fn
+      {vars, [nil]} -> {vars, []}
+      {vars, locales} -> {vars, Enum.uniq(locales)}
+    end)
   end
 
   @doc false
@@ -470,6 +487,10 @@ defmodule Cldr.Route.LocalizedHelpers do
   generate the required mapping from locale to URL for a given helper.
   These `_link` helpers take the same arguments as the `_path` and
   `_url` helpers.
+
+  If the helper refers to a route that is not localized then an
+  empty string will be returned since there are no alternative
+  localizations of this route.
 
   See https://developers.google.com/search/docs/advanced/crawling/localized-versions#http
 
