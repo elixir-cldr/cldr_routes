@@ -178,7 +178,7 @@ defmodule Cldr.Route.Test do
 
     @endpoint MyApp.Router
 
-    test "That :private propogate to the connection" do
+    test "That :private propagates to the connection" do
       {:ok, locale} = MyApp.Cldr.validate_locale(:en)
       conn = get(build_conn(), "/users/1")
       assert conn.private.cldr_locale == locale
@@ -186,6 +186,50 @@ defmodule Cldr.Route.Test do
       {:ok, locale} = MyApp.Cldr.validate_locale(:de)
       conn = get(build_conn(), "/users_de/1")
       assert conn.private.cldr_locale == locale
+    end
+
+    @endpoint MyAppWeb.Endpoint
+
+    test "hreflang link helper" do
+       conn = get(build_conn(), "/users/1")
+
+       links = MyApp.Router.LocalizedHelpers.user_links(conn, :show, 1)
+       header_io_data = MyApp.Router.LocalizedHelpers.hreflang_link_headers(links)
+       header = Phoenix.HTML.safe_to_string(header_io_data)
+
+       assert links == %{
+         "de" => "http://localhost/users_de/1",
+         "en" => "http://localhost/users/1",
+         "fr" => "http://localhost/users_fr/1"
+       }
+
+       assert header_io_data == {
+         :safe,
+         [
+           ["<Link: ", "http://localhost/users_de/1", "; rel=alternate; hreflang=", "\"de\"", " />"],
+           "\n",
+           ["<Link: ", "http://localhost/users/1", "; rel=alternate; hreflang=", "\"en\"", " />"],
+           "\n",
+           ["<Link: ", "http://localhost/users_fr/1", "; rel=alternate; hreflang=", "\"fr\"", " />"]
+          ]
+        }
+
+       assert header ==
+         "<Link: http://localhost/users_de/1; rel=alternate; hreflang=\"de\" />\n" <>
+         "<Link: http://localhost/users/1; rel=alternate; hreflang=\"en\" />\n" <>
+         "<Link: http://localhost/users_fr/1; rel=alternate; hreflang=\"fr\" />"
+    end
+
+    test "hreflang test helper for non-localized route" do
+      conn = get(build_conn(), "/not_localized/1")
+
+      links = MyApp.Router.LocalizedHelpers.not_localized_links(conn, :show, 1)
+      header_io_data = MyApp.Router.LocalizedHelpers.hreflang_link_headers(links)
+      header = Phoenix.HTML.safe_to_string(header_io_data)
+
+      assert links == %{}
+      assert header_io_data == {:safe, []}
+      assert header == ""
     end
   end
 end

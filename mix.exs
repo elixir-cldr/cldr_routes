@@ -1,21 +1,21 @@
 defmodule CldrRoutes.MixProject do
   use Mix.Project
 
-  @version "0.5.0"
+  @version "0.6.0"
 
   def project do
     [
       app: :ex_cldr_routes,
       version: @version,
       elixir: "~> 1.10",
-      description: "CLDR-based localized route generation and path helpers for Phoenix",
+      description: "Cldr-based localized route generation and path helpers for Phoenix",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       elixirc_paths: elixirc_paths(Mix.env()),
       package: package(),
       deps: deps(),
-      compilers: [:gettext] ++ Mix.compilers(),
+      compilers: Mix.compilers(),
 
       # Docs
       name: "Cldr Routes",
@@ -52,7 +52,7 @@ defmodule CldrRoutes.MixProject do
 
   defp deps do
     [
-      {:ex_cldr, "~> 2.27"},
+      {:ex_cldr, "~> 2.32"},
       {:phoenix, "~> 1.6"},
       {:phoenix_live_view, "~> 0.17", optional: true},
       {:jason, "~> 1.0"},
