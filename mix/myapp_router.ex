@@ -3,8 +3,8 @@ defmodule MyApp.Router do
   import Phoenix.LiveView.Router
   use MyApp.Cldr.Routes
 
-  # Nested routes to an arbitrary level (testing with 3)
-  localize do
+ # Nested routes to an arbitrary level (testing with 3)
+ localize do
     get "/pages/:page", PageController, :show, assigns: %{key: :value}
     resources "/users", UserController do
       resources "/faces", FaceController, except: [:delete] do

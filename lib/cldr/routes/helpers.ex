@@ -7,6 +7,10 @@ defmodule Cldr.Route.LocalizedHelpers do
   path segments.
 
   """
+
+  @type locale_name :: String.t()
+  @type url :: String.t()
+
   @known_suffixes ["path", "url"]
 
   @doc """
@@ -29,8 +33,8 @@ defmodule Cldr.Route.LocalizedHelpers do
     docs = Keyword.get(opts, :docs, true)
     localized_helpers = localized_helpers(groups, cldr_backend)
     non_localized_helpers = non_localized_helpers(groups, helper_module)
-    proxy_helpers = proxy_helpers(groups, helper_module, cldr_backend)
-    other_proxies = other_proxies(helper_module)
+    delegate_helpers = delegate_helpers(groups, helper_module, cldr_backend)
+    other_delegates = other_delegates(helper_module)
     catch_all = catch_all(groups, helper_module)
 
     code =
@@ -39,11 +43,15 @@ defmodule Cldr.Route.LocalizedHelpers do
         """
         Module with localized helpers generated from #{inspect(unquote(env.module))}.
         """
+
+        alias Cldr.Route.LocalizedHelpers
+
         unquote_splicing(localized_helpers)
         unquote_splicing(non_localized_helpers)
-        unquote_splicing(proxy_helpers)
-        unquote(other_proxies)
+        unquote_splicing(delegate_helpers)
+        unquote(other_delegates)
         unquote_splicing(catch_all)
+        unquote_splicing(href_link_helpers(routes))
       end
 
     Module.create(localized_helper_module, code, line: env.line, file: env.file)
@@ -139,7 +147,7 @@ defmodule Cldr.Route.LocalizedHelpers do
     Map.has_key?(route.private, :cldr_locale)
   end
 
-  defp proxy_helpers(groups, helper_module, cldr_backend) do
+  defp delegate_helpers(groups, helper_module, cldr_backend) do
     for {_helper, helper_routes} <- groups,
         {_, [{route, exprs} | _]} <- routes_in_order(helper_routes),
         locale_name <- cldr_backend.known_locale_names(),
@@ -285,7 +293,7 @@ defmodule Cldr.Route.LocalizedHelpers do
     end
   end
 
-  defp other_proxies(helper_module) do
+  defp other_delegates(helper_module) do
     quote do
       @doc """
       Generates the path information including any necessary prefix.
@@ -321,7 +329,81 @@ defmodule Cldr.Route.LocalizedHelpers do
       def static_integrity(conn_or_endpoint, path) do
         unquote(helper_module).static_integrity(conn_or_endpoint, path)
       end
+
+      @doc """
+      Generates an HTTP `Link` header for a given map of locale => URLs
+
+      This function generates `Link` headers that should be placed in the
+      `HEAD` section of an HTML document to indicate the different language
+      versions of a given page.
+
+      The `MyApp.Router.LocalizedHelpers.<helper>_link` functions can
+      generate the required mapping from locale to URL for a given helper.
+      These `_link` helpers take the same arguments as the `_path` and
+      `_url` helpers.
+
+      See https://developers.google.com/search/docs/advanced/crawling/localized-versions#http
+
+      ### Example
+
+            ===> MyApp.Helpers.LocalizedHelpers.user_links(conn, :show, 1)
+            ...> |> MyApp.Helpers.LocalizedHelpers.hreflang_link_headers()
+
+      """
+      @spec hreflang_link_headers(%{LocalizedHelpers.locale_name() => LocalizedHelpers.url()}) ::
+        Phoenix.HTML.safe()
+
+      def hreflang_link_headers(url_map) do
+        Cldr.Route.LocalizedHelpers.hreflang_link_headers(url_map)
+      end
     end
+  end
+
+  # Return a map of locales to URLs that can be used to
+  # create HTTP headers like `Link: <url1>; rel="alternate"; hreflang="lang_code_1"`
+
+  defp href_link_helpers(routes) do
+    for {helper, routes_by_locale} <- helper_by_locale(routes),
+        {vars, locales} <- routes_by_locale,
+        locales != [] and !is_nil(hd(locales)) do
+      quote do
+        def unquote(:"#{helper}_links")(conn_or_endpoint, plug_opts, unquote_splicing(vars)) do
+          for locale <- unquote(Macro.escape(locales)) do
+            Cldr.with_locale locale, fn ->
+              {
+                Map.fetch!(locale, :requested_locale_name),
+                unquote(:"#{helper}_url")(conn_or_endpoint, plug_opts, unquote_splicing(vars))
+              }
+            end
+          end
+          |> Map.new()
+        end
+      end
+    end
+  end
+
+  defp routes_in_order(routes) do
+    routes
+    |> Enum.group_by(fn {_route, exprs} -> length(exprs.binding) end)
+    |> Enum.sort()
+  end
+
+  def helper_by_locale(routes) do
+    routes
+    |> Enum.group_by(fn {route, _exprs} ->
+      if localized_route?(route), do: strip_locale(route.helper), else: route.helper
+    end)
+    |> Enum.map(fn {helper, routes} ->
+      {helper, routes_by_locale(routes)}
+    end)
+  end
+
+  defp routes_by_locale(routes) do
+    Enum.group_by(routes,
+      fn {_route, exprs} -> elem(:lists.unzip(exprs.binding), 1) end,
+      fn {route, _exprs} -> route.private[:cldr_locale]  end
+    )
+    |> Enum.map(fn {vars, locales} -> {vars, Enum.uniq(locales)} end)
   end
 
   @doc false
@@ -377,10 +459,35 @@ defmodule Cldr.Route.LocalizedHelpers do
     """
   end
 
-  defp routes_in_order(routes) do
-    routes
-    |> Enum.group_by(fn {_route, exprs} -> length(exprs.binding) end)
-    |> Enum.sort()
+  @doc """
+  Generates an HTTP `Link` header for a given map of locale => URLs
+
+  This function generates `Link` headers that should be placed in the
+  `HEAD` section of an HTML document to indicate the different language
+  versions of a given page.
+
+  The `MyApp.Router.LocalizedHelpers.<helper>_link` functions can
+  generate the required mapping from locale to URL for a given helper.
+  These `_link` helpers take the same arguments as the `_path` and
+  `_url` helpers.
+
+  See https://developers.google.com/search/docs/advanced/crawling/localized-versions#http
+
+  ### Example
+
+        ===> MyApp.Helpers.LocalizedHelpers.user_links(conn, :show, 1)
+        ...> |> Cldr.Route.LocalizedHelpers.hreflang_link_headers()
+
+  """
+  @spec hreflang_link_headers(%{locale_name() => url()}) :: Phoenix.HTML.safe()
+  def hreflang_link_headers(url_map) do
+    link_headers =
+      for {locale, url} <- url_map do
+        ["<Link: ", url, "; rel=alternate; hreflang=", inspect(locale), " />"]
+      end
+      |> Enum.intersperse("\n")
+
+    {:safe, link_headers}
   end
 
   @doc false

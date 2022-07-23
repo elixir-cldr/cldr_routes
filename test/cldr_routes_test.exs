@@ -187,5 +187,37 @@ defmodule Cldr.Route.Test do
       conn = get(build_conn(), "/users_de/1")
       assert conn.private.cldr_locale == locale
     end
+
+    @endpoint MyAppWeb.Endpoint
+
+    test "hreflang link helper" do
+       conn = get(build_conn(), "/users/1")
+
+       links = MyApp.Router.LocalizedHelpers.user_links(conn, :index)
+       header_io_data = MyApp.Router.LocalizedHelpers.hreflang_link_headers(links)
+       header = Phoenix.HTML.safe_to_string(header_io_data)
+
+       assert links == %{
+         "de" => "http://localhost/users_de",
+         "en" => "http://localhost/users",
+         "fr" => "http://localhost/users_fr"
+       }
+
+       assert header_io_data == {
+         :safe,
+         [
+           ["<Link: ", "http://localhost/users_de", "; rel=alternate; hreflang=", "\"de\"", " />"],
+           "\n",
+           ["<Link: ", "http://localhost/users", "; rel=alternate; hreflang=", "\"en\"", " />"],
+           "\n",
+           ["<Link: ", "http://localhost/users_fr", "; rel=alternate; hreflang=", "\"fr\"", " />"]
+           ]
+         }
+
+       assert header ==
+         "<Link: http://localhost/users_de; rel=alternate; hreflang=\"de\" />\n" <>
+         "<Link: http://localhost/users; rel=alternate; hreflang=\"en\" />\n" <>
+         "<Link: http://localhost/users_fr; rel=alternate; hreflang=\"fr\" />"
+    end
   end
 end
