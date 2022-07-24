@@ -8,9 +8,8 @@ This is the changelog for Cldr Routes version 0.6.0 released on July 24th, 2022.
 
 * Adds `MyApp.Router.LocalizedHelpers.<helper>_links` functions to the generated `LocalizedHelpers` module. These `_links` functions are 1:1 correspondents to the `_path` and `_url` helpers. The `_link` helpers generate link headers that help identify the other language versions of a page. They are used like this:
 ```elixir
-iex> alias MyApp.Router.LocalizedHelpers
-iex> LocalizedHelpers.user_links(conn, :show, 1)
-...> |> LocalizedHelpers.hreflang_links()
+iex> alias MyApp.Router.LocalizedHelpers, as: Routes
+iex> Routes.user_links(conn, :show, 1) |> Routes.hreflang_links()
 {
  :safe,
  [

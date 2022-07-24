@@ -331,7 +331,7 @@ defmodule Cldr.Route.LocalizedHelpers do
       end
 
       @doc """
-      Generates an HTTP `Link` header for a given map of locale => URLs
+      Generates HTML `link` tags for a given map of locale => URLs
 
       This function generates `<link .../>` tags that should be placed in the
       `<head>` section of an HTML document to indicate the different language
@@ -477,9 +477,9 @@ defmodule Cldr.Route.LocalizedHelpers do
   end
 
   @doc """
-  Generates an HTTP `Link` header for a given map of locale => URLs
+  Generates HTML `link` tags for a given map of locale => URLs
 
-  This function generates `<link ... />` headers that should be placed in the
+  This function generates `<link ... />` tags that should be placed in the
   `<head>` section of an HTML document to indicate the different language
   versions of a given page.
 
