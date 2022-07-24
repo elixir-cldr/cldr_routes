@@ -1,5 +1,28 @@
 # Changelog
 
+## Cldr Routes v0.6.0
+
+This is the changelog for Cldr Routes version 0.6.0 released on July 24th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+
+### Enhancements
+
+* Adds `MyApp.Router.LocalizedHelpers.<helper>_links` functions to the generated `LocalizedHelpers` module. These `_links` functions are 1:1 correspondents to the `_path` and `_url` helpers. The `_link` helpers generate link headers that help identify the other language versions of a page. They are used like this:
+```elixir
+iex> alias MyApp.Router.LocalizedHelpers
+iex> LocalizedHelpers.user_links(conn, :show, 1)
+...> |> LocalizedHelpers.hreflang_link_headers()
+{
+ :safe,
+ [
+   ["<Link: ", "http://localhost/users_de/1", "; rel=alternate; hreflang=", "\"de\"", " />"],
+   "\n",
+   ["<Link: ", "http://localhost/users/1", "; rel=alternate; hreflang=", "\"en\"", " />"],
+   "\n",
+   ["<Link: ", "http://localhost/users_fr/1", "; rel=alternate; hreflang=", "\"fr\"", " />"]
+  ]
+}
+```
+
 ## Cldr Routes v0.5.0
 
 This is the changelog for Cldr Routes version 0.5.0 released on July 22nd, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
