@@ -24,7 +24,7 @@ defmodule CldrRoutes.MixProject do
       docs: docs(),
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore_warnings",
-        plt_add_apps: ~w(jason mix phoenix_live_view)a
+        plt_add_apps: ~w(jason mix phoenix_live_view phoenix_html)a
       ]
     ]
   end
