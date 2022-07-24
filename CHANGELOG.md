@@ -10,15 +10,15 @@ This is the changelog for Cldr Routes version 0.6.0 released on July 24th, 2022.
 ```elixir
 iex> alias MyApp.Router.LocalizedHelpers
 iex> LocalizedHelpers.user_links(conn, :show, 1)
-...> |> LocalizedHelpers.hreflang_link_headers()
+...> |> LocalizedHelpers.hreflang_links()
 {
  :safe,
  [
-   ["<Link: ", "http://localhost/users_de/1", "; rel=alternate; hreflang=", "\"de\"", " />"],
+   ["<link href=", "\"http://localhost/users_de/1\"", "; rel=alternate; hreflang=", "\"de\"", " />"],
    "\n",
-   ["<Link: ", "http://localhost/users/1", "; rel=alternate; hreflang=", "\"en\"", " />"],
+   ["<link href=", "\"http://localhost/users/1\"", "; rel=alternate; hreflang=", "\"en\"", " />"],
    "\n",
-   ["<Link: ", "http://localhost/users_fr/1", "; rel=alternate; hreflang=", "\"fr\"", " />"]
+   ["<link href=", "\"http://localhost/users_fr/1\"", "; rel=alternate; hreflang=", "\"fr\"", " />"]
   ]
 }
 ```

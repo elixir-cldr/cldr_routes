@@ -333,8 +333,8 @@ defmodule Cldr.Route.LocalizedHelpers do
       @doc """
       Generates an HTTP `Link` header for a given map of locale => URLs
 
-      This function generates `Link` headers that should be placed in the
-      `HEAD` section of an HTML document to indicate the different language
+      This function generates `<link .../>` tags that should be placed in the
+      `<head>` section of an HTML document to indicate the different language
       versions of a given page.
 
       The `MyApp.Router.LocalizedHelpers.<helper>_link` functions can
@@ -347,14 +347,14 @@ defmodule Cldr.Route.LocalizedHelpers do
       ### Example
 
             ===> MyApp.Helpers.LocalizedHelpers.user_links(conn, :show, 1)
-            ...> |> MyApp.Helpers.LocalizedHelpers.hreflang_link_headers()
+            ...> |> MyApp.Helpers.LocalizedHelpers.hreflang_links()
 
       """
-      @spec hreflang_link_headers(%{LocalizedHelpers.locale_name() => LocalizedHelpers.url()}) ::
+      @spec hreflang_links(%{LocalizedHelpers.locale_name() => LocalizedHelpers.url()}) ::
         Phoenix.HTML.safe()
 
-      def hreflang_link_headers(url_map) do
-        Cldr.Route.LocalizedHelpers.hreflang_link_headers(url_map)
+      def hreflang_links(url_map) do
+        Cldr.Route.LocalizedHelpers.hreflang_links(url_map)
       end
     end
   end
@@ -479,8 +479,8 @@ defmodule Cldr.Route.LocalizedHelpers do
   @doc """
   Generates an HTTP `Link` header for a given map of locale => URLs
 
-  This function generates `Link` headers that should be placed in the
-  `HEAD` section of an HTML document to indicate the different language
+  This function generates `<link ... />` headers that should be placed in the
+  `<head>` section of an HTML document to indicate the different language
   versions of a given page.
 
   The `MyApp.Router.LocalizedHelpers.<helper>_link` functions can
@@ -497,18 +497,18 @@ defmodule Cldr.Route.LocalizedHelpers do
   ### Example
 
         ===> MyApp.Helpers.LocalizedHelpers.user_links(conn, :show, 1)
-        ...> |> Cldr.Route.LocalizedHelpers.hreflang_link_headers()
+        ...> |> Cldr.Route.LocalizedHelpers.hreflang_links()
 
   """
-  @spec hreflang_link_headers(%{locale_name() => url()}) :: Phoenix.HTML.safe()
-  def hreflang_link_headers(url_map) do
-    link_headers =
+  @spec hreflang_links(%{locale_name() => url()}) :: Phoenix.HTML.safe()
+  def hreflang_links(url_map) do
+    links =
       for {locale, url} <- url_map do
-        ["<Link: ", url, "; rel=alternate; hreflang=", inspect(locale), " />"]
+        ["<link href=", inspect(url), "; rel=alternate; hreflang=", inspect(locale), " />"]
       end
       |> Enum.intersperse("\n")
 
-    {:safe, link_headers}
+    {:safe, links}
   end
 
   @doc false
