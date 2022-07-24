@@ -1,5 +1,13 @@
 # Changelog
 
+## Cldr Routes v0.6.1
+
+This is the changelog for Cldr Routes version 0.6.1 released on July 24th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+
+### Bug Fixes
+
+* Fix `LocalizedHelpers.hreflang_links/1` to return an empty string if links is `nil`.
+
 ## Cldr Routes v0.6.0
 
 This is the changelog for Cldr Routes version 0.6.0 released on July 24th, 2022.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)

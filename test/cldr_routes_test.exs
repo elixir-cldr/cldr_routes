@@ -14,6 +14,7 @@ defmodule Cldr.Route.Test do
   alias Cldr.Route.Test.MyTestApp.Router
 
   doctest Cldr.Route
+  doctest Cldr.Route.LocalizedHelpers
   doctest MyApp.Router.LocalizedHelpers
 
   describe "Routes" do

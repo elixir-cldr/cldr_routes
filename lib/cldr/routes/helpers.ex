@@ -494,14 +494,34 @@ defmodule Cldr.Route.LocalizedHelpers do
 
   See https://developers.google.com/search/docs/advanced/crawling/localized-versions#http
 
-  ### Example
+  ### Examples
 
-        ===> MyApp.Helpers.LocalizedHelpers.user_links(conn, :show, 1)
-        ...> |> Cldr.Route.LocalizedHelpers.hreflang_links()
+      iex> links = %{
+      ...>   "en" => "https://localhost/users/1",
+      ...>   "fr" => "https://localhost/utilisateurs/1"
+      ...>  }
+      iex> Cldr.Route.LocalizedHelpers.hreflang_links(links)
+      {:safe, [
+        ["<link href=", "\\"https://localhost/users/1\\"",
+          "; rel=alternate; hreflang=", "\\"en\\"", " />"],
+        "\\n",
+        ["<link href=", "\\"https://localhost/utilisateurs/1\\"",
+          "; rel=alternate; hreflang=", "\\"fr\\"", " />"]
+      ]}
+
+      iex> Cldr.Route.LocalizedHelpers.hreflang_links(nil)
+      {:safe, []}
+
+      iex> Cldr.Route.LocalizedHelpers.hreflang_links(%{})
+      {:safe, []}
 
   """
   @spec hreflang_links(%{locale_name() => url()}) :: Phoenix.HTML.safe()
-  def hreflang_links(url_map) do
+  def hreflang_links(nil) do
+    {:safe, []}
+  end
+
+  def hreflang_links(url_map) when is_map(url_map) do
     links =
       for {locale, url} <- url_map do
         ["<link href=", inspect(url), "; rel=alternate; hreflang=", inspect(locale), " />"]
