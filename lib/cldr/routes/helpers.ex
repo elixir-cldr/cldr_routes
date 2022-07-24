@@ -501,13 +501,14 @@ defmodule Cldr.Route.LocalizedHelpers do
       ...>   "fr" => "https://localhost/utilisateurs/1"
       ...>  }
       iex> Cldr.Route.LocalizedHelpers.hreflang_links(links)
-      {:safe, [
-        ["<link href=", "\\"https://localhost/users/1\\"",
-          "; rel=alternate; hreflang=", "\\"en\\"", " />"],
-        "\\n",
-        ["<link href=", "\\"https://localhost/utilisateurs/1\\"",
-          "; rel=alternate; hreflang=", "\\"fr\\"", " />"]
-      ]}
+      {
+        :safe,
+        [
+          [60, "link", [32, "href", 61, 34, "https://localhost/users/1", 34, 32, "hreflang", 61, 34, "en", 34, 32, "rel", 61, 34, "alternate", 34], 62],
+          10,
+          [60, "link", [32, "href", 61, 34, "https://localhost/utilisateurs/1", 34, 32, "hreflang", 61, 34, "fr", 34, 32, "rel", 61, 34, "alternate", 34], 62]
+        ]
+      }
 
       iex> Cldr.Route.LocalizedHelpers.hreflang_links(nil)
       {:safe, []}
@@ -524,9 +525,10 @@ defmodule Cldr.Route.LocalizedHelpers do
   def hreflang_links(url_map) when is_map(url_map) do
     links =
       for {locale, url} <- url_map do
-        ["<link href=", inspect(url), "; rel=alternate; hreflang=", inspect(locale), " />"]
+        {:safe, link} = Phoenix.HTML.Tag.tag(:link, href: url, rel: "alternate", hreflang: locale)
+        link
       end
-      |> Enum.intersperse("\n")
+      |> Enum.intersperse(?\n)
 
     {:safe, links}
   end

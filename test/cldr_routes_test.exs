@@ -205,20 +205,20 @@ defmodule Cldr.Route.Test do
        }
 
        assert header_io_data == {
-         :safe,
-         [
-           ["<link href=", "\"http://localhost/users_de/1\"", "; rel=alternate; hreflang=", "\"de\"", " />"],
-           "\n",
-           ["<link href=", "\"http://localhost/users/1\"", "; rel=alternate; hreflang=", "\"en\"", " />"],
-           "\n",
-           ["<link href=", "\"http://localhost/users_fr/1\"", "; rel=alternate; hreflang=", "\"fr\"", " />"]
+          :safe,
+          [
+            [60, "link", [32, "href", 61, 34, "http://localhost/users_de/1", 34, 32, "hreflang", 61, 34, "de", 34, 32, "rel", 61, 34, "alternate", 34], 62],
+            10,
+            [60, "link", [32, "href", 61, 34, "http://localhost/users/1", 34, 32, "hreflang", 61, 34, "en", 34, 32, "rel", 61, 34, "alternate", 34], 62],
+            10,
+            [60, "link", [32, "href", 61, 34, "http://localhost/users_fr/1", 34, 32, "hreflang", 61, 34, "fr", 34, 32, "rel", 61, 34, "alternate", 34], 62]
           ]
         }
 
        assert header ==
-         "<link href=\"http://localhost/users_de/1\"; rel=alternate; hreflang=\"de\" />\n" <>
-         "<link href=\"http://localhost/users/1\"; rel=alternate; hreflang=\"en\" />\n" <>
-         "<link href=\"http://localhost/users_fr/1\"; rel=alternate; hreflang=\"fr\" />"
+         "<link href=\"http://localhost/users_de/1\" hreflang=\"de\" rel=\"alternate\">\n" <>
+         "<link href=\"http://localhost/users/1\" hreflang=\"en\" rel=\"alternate\">\n" <>
+         "<link href=\"http://localhost/users_fr/1\" hreflang=\"fr\" rel=\"alternate\">"
     end
 
     test "hreflang test helper for non-localized route" do
