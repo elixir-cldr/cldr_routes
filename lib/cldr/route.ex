@@ -278,6 +278,7 @@ defmodule Cldr.Route do
   defmacro __before_compile__(env) do
     alias Cldr.Route.LocalizedHelpers
     routes = env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse()
+    forwards = env.module |> Module.get_attribute(:phoenix_forwards)
     localized_routes = Cldr.Route.routes(routes)
 
     # Remove bookkeeping data in :private
@@ -285,7 +286,7 @@ defmodule Cldr.Route do
     Module.register_attribute(env.module, :phoenix_routes, [])
     Module.put_attribute(env.module, :phoenix_routes, Cldr.Route.delete_original_path(routes))
 
-    routes_with_exprs = Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1)})
+    routes_with_exprs = Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1, forwards)})
     helpers_moduledoc = Module.get_attribute(env.module, :helpers_moduledoc)
     LocalizedHelpers.define(env, routes_with_exprs, docs: helpers_moduledoc)
 
