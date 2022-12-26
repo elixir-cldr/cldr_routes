@@ -23,12 +23,10 @@ defmodule MyApp.Router do
   # Specific set of locales
   localize [:en, :fr] do
     resources "/comments", PageController, except: [:delete]
-    get "/pages/:page", PageController, :edit, assigns: %{key: :value}
   end
 
-  # Test all verbs
+  # Test all other verbs
   localize do
-    get "/pages/:page", PageController, :show
     patch "/pages/:page", PageController, :update
     delete "/pages/:page", PageController, :delete
     post "/pages/:page", PageController, :create

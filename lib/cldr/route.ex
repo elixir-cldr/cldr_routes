@@ -254,15 +254,15 @@ defmodule Cldr.Route do
   @doc false
   def confirm_backend_has_gettext!(backend, %Cldr.Config{gettext: nil}) do
     raise ArgumentError,
-    """
-    The Cldr backend #{inspect(backend)} does not have a Gettext
-    module configured.
+          """
+          The Cldr backend #{inspect(backend)} does not have a Gettext
+          module configured.
 
-    A Gettext module must be configured in order to define localized
-    routes. In addition, translations must be provided for the Gettext
-    backend under the "routes" domain (ie in a file "routes.pot" for
-    each configured Gettext locale).
-    """
+          A Gettext module must be configured in order to define localized
+          routes. In addition, translations must be provided for the Gettext
+          backend under the "routes" domain (ie in a file "routes.pot" for
+          each configured Gettext locale).
+          """
   end
 
   def confirm_backend_has_gettext!(_backend, %Cldr.Config{} = _config) do
@@ -278,15 +278,21 @@ defmodule Cldr.Route do
   defmacro __before_compile__(env) do
     alias Cldr.Route.LocalizedHelpers
     routes = env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse()
-    forwards = env.module |> Module.get_attribute(:phoenix_forwards)
     localized_routes = Cldr.Route.routes(routes)
+    forwards = env.module |> Module.get_attribute(:phoenix_forwards)
 
     # Remove bookkeeping data in :private
     Module.delete_attribute(env.module, :phoenix_routes)
     Module.register_attribute(env.module, :phoenix_routes, [])
     Module.put_attribute(env.module, :phoenix_routes, Cldr.Route.delete_original_path(routes))
 
-    routes_with_exprs = Enum.map(routes, &{&1, Phoenix.Router.Route.exprs(&1, forwards)})
+    routes_with_exprs =
+      if function_exported?(Phoenix.Router.Route, :exprs, 2) do
+        Enum.map(routes, &{&1, apply(Phoenix.Router.Route, :exprs, [&1, forwards])})
+      else
+        Enum.map(routes, &{&1, apply(Phoenix.Router.Route, :exprs, [&1])})
+      end
+
     helpers_moduledoc = Module.get_attribute(env.module, :helpers_moduledoc)
     LocalizedHelpers.define(env, routes_with_exprs, docs: helpers_moduledoc)
 
@@ -429,7 +435,7 @@ defmodule Cldr.Route do
 
   # Rewrite nested resources; guard against infinite recursion
   defmacro localize(locale, {:resources, _, [path, controller, [do: {fun, _, _}] = nested]})
-      when fun != :localize do
+           when fun != :localize do
     nested = localize_nested_resources(locale, nested)
 
     quote do
@@ -442,7 +448,8 @@ defmodule Cldr.Route do
   end
 
   # Do the actual translations
-  defmacro localize(cldr_locale_name, {verb, meta, [path | args]}) when verb in @localizable_verbs do
+  defmacro localize(cldr_locale_name, {verb, meta, [path | args]})
+           when verb in @localizable_verbs do
     cldr_backend = Module.get_attribute(__CALLER__.module, :_cldr_backend)
     do_localize(:private, cldr_locale_name, cldr_backend, {verb, meta, [path | args]})
   end
@@ -453,10 +460,10 @@ defmodule Cldr.Route do
     args = Enum.map_join(args, ", ", &inspect/1)
 
     raise ArgumentError,
-    """
-    Invalid route for localization: #{verb} #{inspect(path)}, #{inspect(args)}
-    Allowed localizable routes are #{inspect(@localizable_verbs)}
-    """
+          """
+          Invalid route for localization: #{verb} #{inspect(path)}, #{inspect(args)}
+          Allowed localizable routes are #{inspect(@localizable_verbs)}
+          """
   end
 
   defp do_localize(field, cldr_locale_name, cldr_backend, {verb, meta, [path | args]} = route) do
@@ -490,7 +497,7 @@ defmodule Cldr.Route do
   end
 
   defp localize_nested_resources(locale, nested) do
-    Macro.postwalk nested, fn
+    Macro.postwalk(nested, fn
       {:resources, _, [_path, _meta, _args, [do: {:resources, _, _}]]} = resources ->
         quote do
           localize unquote(locale) do
@@ -507,27 +514,27 @@ defmodule Cldr.Route do
 
       {:resources, _, _} = route ->
         quote do
-          localize unquote(locale), unquote(route)
+          localize(unquote(locale), unquote(route))
         end
 
       other ->
         other
-    end
+    end)
   end
 
   defp locales_from_unique_gettext_locales(cldr_backend) do
     cldr_backend.known_locale_names()
     |> Enum.map(&cldr_backend.validate_locale/1)
     |> Enum.map(&elem(&1, 1))
-    |> Enum.uniq_by(&(&1.gettext_locale_name))
+    |> Enum.uniq_by(& &1.gettext_locale_name)
     |> Enum.reject(&is_nil/1)
-    |> Enum.map(&(&1.cldr_locale_name))
+    |> Enum.map(& &1.cldr_locale_name)
   end
 
   # Interpolates the locale, language and territory
   # into he path by splicing the AST
   defp interpolate(path, locale) do
-    Macro.prewalk path, fn
+    Macro.prewalk(path, fn
       {{:., _, [Kernel, :to_string]}, _, [{:locale, _, _}]} ->
         to_string(locale.cldr_locale_name) |> String.downcase()
 
@@ -539,7 +546,7 @@ defmodule Cldr.Route do
 
       other ->
         other
-    end
+    end)
   end
 
   # Since we are doing com[ile-time translation of the
@@ -564,7 +571,7 @@ defmodule Cldr.Route do
   end
 
   defp combine_string_segments({:<>, _, [a, b]}) do
-   [combine_string_segments(a), combine_string_segments(b)]
+    [combine_string_segments(a), combine_string_segments(b)]
   end
 
   defp combine_string_segments([a | rest]) do
@@ -573,12 +580,12 @@ defmodule Cldr.Route do
 
   defp combine_string_segments(ast) do
     raise ArgumentError,
-    """
-    The path arugment to a localized route must be a binary that
-    can be resolved at compile time. Found:
+          """
+          The path arugment to a localized route must be a binary that
+          can be resolved at compile time. Found:
 
-    #{Macro.to_string(ast)}
-    """
+          #{Macro.to_string(ast)}
+          """
   end
 
   # Localise the helper name for the a verb (except resources)
@@ -785,8 +792,9 @@ defmodule Cldr.Route do
 
   # When the routes match except for locale
   defp group_locales_by_path_helper_verb([
-      %{path: path, helper: helper, verb: verb} = first,
-      %{path: path, helper: helper, verb: verb} = second | rest]) do
+         %{path: path, helper: helper, verb: verb} = first,
+         %{path: path, helper: helper, verb: verb} = second | rest
+       ]) do
     locales = Enum.uniq([locale_from_args(second) | first.metadata.locales]) |> Enum.sort()
     metadata = Map.put(first.metadata, :locales, locales)
     group_locales_by_path_helper_verb([%{first | metadata: metadata} | rest])
@@ -855,7 +863,7 @@ defmodule Cldr.Route do
   end
 
   defp escape_interpolation(path) do
-    Macro.prewalk path, fn
+    Macro.prewalk(path, fn
       {{:., _, [Kernel, :to_string]}, _, [{:locale, _, _}]} ->
         ~S"#{locale}"
 
@@ -867,6 +875,6 @@ defmodule Cldr.Route do
 
       other ->
         other
-    end
+    end)
   end
 end

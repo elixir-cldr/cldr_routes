@@ -112,22 +112,22 @@ defmodule Cldr.Route.Test do
       assert MyApp.Router.LocalizedHelpers.user_path(%Plug.Conn{}, :index) == "/users"
 
       {:ok, locale} = MyApp.Cldr.validate_locale("en-AU")
-      Cldr.put_locale locale
+      Cldr.put_locale(locale)
       assert MyApp.Router.LocalizedHelpers.user_path(%Plug.Conn{}, :index) == "/users"
     end
 
     test "An warning is printed when there is no gettext locale and raises if helper is called" do
       assert capture_io(:stderr, fn ->
-        defmodule MyTestApp.Router do
-          use Phoenix.Router
-          use Backend.Cldr.Routes
+               defmodule MyTestApp.Router do
+                 use Phoenix.Router
+                 use Backend.Cldr.Routes
 
-          # Nested routes to an arbitrary level (testing with 3)
-          localize do
-            get "/pages/:page", PageController, :show, private: %{key: :value}
-          end
-        end
-      end) =~ "No known gettext locale for :es"
+                 # Nested routes to an arbitrary level (testing with 3)
+                 localize do
+                   get("/pages/:page", PageController, :show, private: %{key: :value})
+                 end
+               end
+             end) =~ "No known gettext locale for :es"
 
       capture_io(fn ->
         {:ok, locale} = Backend.Cldr.validate_locale("es")
@@ -143,38 +143,38 @@ defmodule Cldr.Route.Test do
   describe "Interpolate during route generation" do
     test "interpolating a locale" do
       assert find_route(MyApp.Router, "/de/locale/pages_de/:page") ==
-        %{
-          helper: "with_locale_de",
-          metadata: %{log: :debug},
-          path: "/de/locale/pages_de/:page",
-          plug: PageController,
-          plug_opts: :show,
-          verb: :get
-        }
+               %{
+                 helper: "with_locale_de",
+                 metadata: %{log: :debug},
+                 path: "/de/locale/pages_de/:page",
+                 plug: PageController,
+                 plug_opts: :show,
+                 verb: :get
+               }
     end
 
     test "interpolating a language" do
       assert find_route(MyApp.Router, "/de/language/pages_de/:page") ==
-        %{
-          helper: "with_language_de",
-          metadata: %{log: :debug},
-          path: "/de/language/pages_de/:page",
-          plug: PageController,
-          plug_opts: :show,
-          verb: :get
-        }
+               %{
+                 helper: "with_language_de",
+                 metadata: %{log: :debug},
+                 path: "/de/language/pages_de/:page",
+                 plug: PageController,
+                 plug_opts: :show,
+                 verb: :get
+               }
     end
 
     test "interpolating a territory" do
       assert find_route(MyApp.Router, "/de/territory/pages_de/:page") ==
-        %{
-          helper: "with_territory_de",
-          metadata: %{log: :debug},
-          path: "/de/territory/pages_de/:page",
-          plug: PageController,
-          plug_opts: :show,
-          verb: :get
-        }
+               %{
+                 helper: "with_territory_de",
+                 metadata: %{log: :debug},
+                 path: "/de/territory/pages_de/:page",
+                 plug: PageController,
+                 plug_opts: :show,
+                 verb: :get
+               }
     end
 
     @endpoint MyApp.Router
@@ -192,33 +192,105 @@ defmodule Cldr.Route.Test do
     @endpoint MyAppWeb.Endpoint
 
     test "hreflang link helper" do
-       conn = get(build_conn(), "/users/1")
+      conn = get(build_conn(), "/users/1")
 
-       links = MyApp.Router.LocalizedHelpers.user_links(conn, :show, 1)
-       header_io_data = MyApp.Router.LocalizedHelpers.hreflang_links(links)
-       header = Phoenix.HTML.safe_to_string(header_io_data)
+      links = MyApp.Router.LocalizedHelpers.user_links(conn, :show, 1)
+      header_io_data = MyApp.Router.LocalizedHelpers.hreflang_links(links)
+      header = Phoenix.HTML.safe_to_string(header_io_data)
 
-       assert links == %{
-         "de" => "http://localhost/users_de/1",
-         "en" => "http://localhost/users/1",
-         "fr" => "http://localhost/users_fr/1"
-       }
+      assert links == %{
+               "de" => "http://localhost/users_de/1",
+               "en" => "http://localhost/users/1",
+               "fr" => "http://localhost/users_fr/1"
+             }
 
-       assert header_io_data == {
-          :safe,
-          [
-            [60, "link", [32, "href", 61, 34, "http://localhost/users_de/1", 34, 32, "hreflang", 61, 34, "de", 34, 32, "rel", 61, 34, "alternate", 34], 62],
-            10,
-            [60, "link", [32, "href", 61, 34, "http://localhost/users/1", 34, 32, "hreflang", 61, 34, "en", 34, 32, "rel", 61, 34, "alternate", 34], 62],
-            10,
-            [60, "link", [32, "href", 61, 34, "http://localhost/users_fr/1", 34, 32, "hreflang", 61, 34, "fr", 34, 32, "rel", 61, 34, "alternate", 34], 62]
-          ]
-        }
+      assert header_io_data == {
+               :safe,
+               [
+                 [
+                   60,
+                   "link",
+                   [
+                     32,
+                     "href",
+                     61,
+                     34,
+                     "http://localhost/users_de/1",
+                     34,
+                     32,
+                     "hreflang",
+                     61,
+                     34,
+                     "de",
+                     34,
+                     32,
+                     "rel",
+                     61,
+                     34,
+                     "alternate",
+                     34
+                   ],
+                   62
+                 ],
+                 10,
+                 [
+                   60,
+                   "link",
+                   [
+                     32,
+                     "href",
+                     61,
+                     34,
+                     "http://localhost/users/1",
+                     34,
+                     32,
+                     "hreflang",
+                     61,
+                     34,
+                     "en",
+                     34,
+                     32,
+                     "rel",
+                     61,
+                     34,
+                     "alternate",
+                     34
+                   ],
+                   62
+                 ],
+                 10,
+                 [
+                   60,
+                   "link",
+                   [
+                     32,
+                     "href",
+                     61,
+                     34,
+                     "http://localhost/users_fr/1",
+                     34,
+                     32,
+                     "hreflang",
+                     61,
+                     34,
+                     "fr",
+                     34,
+                     32,
+                     "rel",
+                     61,
+                     34,
+                     "alternate",
+                     34
+                   ],
+                   62
+                 ]
+               ]
+             }
 
-       assert header ==
-         "<link href=\"http://localhost/users_de/1\" hreflang=\"de\" rel=\"alternate\">\n" <>
-         "<link href=\"http://localhost/users/1\" hreflang=\"en\" rel=\"alternate\">\n" <>
-         "<link href=\"http://localhost/users_fr/1\" hreflang=\"fr\" rel=\"alternate\">"
+      assert header ==
+               "<link href=\"http://localhost/users_de/1\" hreflang=\"de\" rel=\"alternate\">\n" <>
+                 "<link href=\"http://localhost/users/1\" hreflang=\"en\" rel=\"alternate\">\n" <>
+                 "<link href=\"http://localhost/users_fr/1\" hreflang=\"fr\" rel=\"alternate\">"
     end
 
     test "hreflang test helper for non-localized route" do

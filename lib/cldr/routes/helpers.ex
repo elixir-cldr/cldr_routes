@@ -40,9 +40,9 @@ defmodule Cldr.Route.LocalizedHelpers do
     code =
       quote do
         @moduledoc unquote(docs) &&
-        """
-        Module with localized helpers generated from #{inspect(unquote(env.module))}.
-        """
+                     """
+                     Module with localized helpers generated from #{inspect(unquote(env.module))}.
+                     """
 
         alias Cldr.Route.LocalizedHelpers
 
@@ -351,7 +351,7 @@ defmodule Cldr.Route.LocalizedHelpers do
 
       """
       @spec hreflang_links(%{LocalizedHelpers.locale_name() => LocalizedHelpers.url()}) ::
-        Phoenix.HTML.safe()
+              Phoenix.HTML.safe()
 
       def hreflang_links(url_map) do
         Cldr.Route.LocalizedHelpers.hreflang_links(url_map)
@@ -366,11 +366,12 @@ defmodule Cldr.Route.LocalizedHelpers do
     for {helper, routes_by_locale} <- helper_by_locale(routes),
         {vars, locales} <- routes_by_locale do
       if locales == [] do
-        quiet_vars = Enum.map(vars, fn var ->
-          quote do
-            _ = unquote(var)
-          end
-        end)
+        quiet_vars =
+          Enum.map(vars, fn var ->
+            quote do
+              _ = unquote(var)
+            end
+          end)
 
         quote generated: true, location: :keep do
           def unquote(:"#{helper}_links")(conn_or_endpoint, plug_opts, unquote_splicing(vars)) do
@@ -379,15 +380,15 @@ defmodule Cldr.Route.LocalizedHelpers do
           end
         end
       else
-        quote generated: true, location: :keep  do
+        quote generated: true, location: :keep do
           def unquote(:"#{helper}_links")(conn_or_endpoint, plug_opts, unquote_splicing(vars)) do
             for locale <- unquote(Macro.escape(locales)) do
-              Cldr.with_locale locale, fn ->
+              Cldr.with_locale(locale, fn ->
                 {
                   Map.fetch!(locale, :requested_locale_name),
                   unquote(:"#{helper}_url")(conn_or_endpoint, plug_opts, unquote_splicing(vars))
                 }
-              end
+              end)
             end
             |> Map.new()
           end
@@ -413,9 +414,10 @@ defmodule Cldr.Route.LocalizedHelpers do
   end
 
   defp routes_by_locale(routes) do
-    Enum.group_by(routes,
+    Enum.group_by(
+      routes,
       fn {_route, exprs} -> elem(:lists.unzip(exprs.binding), 1) end,
-      fn {route, _exprs} -> route.private[:cldr_locale]  end
+      fn {route, _exprs} -> route.private[:cldr_locale] end
     )
     |> Enum.map(fn
       {vars, [nil]} -> {vars, []}
@@ -535,6 +537,7 @@ defmodule Cldr.Route.LocalizedHelpers do
 
   @doc false
   def strip_locale(helper, locale)
+
   def strip_locale(helper, %Cldr.LanguageTag{} = locale) do
     locale_name = locale.gettext_locale_name
     strip_locale(helper, locale_name)
