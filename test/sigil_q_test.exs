@@ -36,4 +36,5 @@ defmodule Sigil_q.Test do
    MyApp.Cldr.put_locale(:fr)
    assert ~q[/users/:user_id/faces/:face_id/:locale/visages] == "/users_fr/:user_id/faces_fr/:face_id/fr/visages"
  end
+
 end

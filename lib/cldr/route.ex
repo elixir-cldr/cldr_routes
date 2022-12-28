@@ -336,6 +336,7 @@ defmodule Cldr.Route do
           end
         end
 
+<<<<<<< HEAD
         defmacro sigil_q({:<<>>, _meta, _segments} = route, flags) do
           import Cldr.Route
           cldr_backend = unquote(cldr_backend)
@@ -355,6 +356,14 @@ defmodule Cldr.Route do
           # |> IO.puts()
 
           code
+=======
+        defmacro sigil_q(path, flags) do
+          cldr_locale_names = Cldr.Route.locales_from_unique_gettext_locales(unquote(cldr_backend))
+
+          quote do
+            sigil_p(unquote(path), unquote(flags))
+          end
+>>>>>>> b08a671 (Plumbing for sigil_q; delegates to sigil_p for now)
         end
       end
     end
@@ -583,8 +592,11 @@ defmodule Cldr.Route do
     end)
   end
 
+<<<<<<< HEAD
   @meta_locales [:und, :en_001]
 
+=======
+>>>>>>> b08a671 (Plumbing for sigil_q; delegates to sigil_p for now)
   @doc false
   def locales_from_unique_gettext_locales(cldr_backend) do
     cldr_backend.known_locale_names()
