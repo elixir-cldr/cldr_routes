@@ -1,2 +1,2 @@
 ExUnit.start()
-MyAppWeb.Endpoint.start_link()
+MyApp.Endpoint.start_link()

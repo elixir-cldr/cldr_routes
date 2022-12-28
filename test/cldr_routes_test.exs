@@ -189,7 +189,7 @@ defmodule Cldr.Route.Test do
       assert conn.private.cldr_locale == locale
     end
 
-    @endpoint MyAppWeb.Endpoint
+    @endpoint MyApp.Endpoint
 
     test "hreflang link helper" do
       conn = get(build_conn(), "/users/1")

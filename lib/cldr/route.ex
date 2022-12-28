@@ -277,6 +277,8 @@ defmodule Cldr.Route do
   @doc false
   defmacro __before_compile__(env) do
     alias Cldr.Route.LocalizedHelpers
+    cldr_backend = Module.get_attribute(env.module, :_cldr_backend)
+    gettext_backend = cldr_backend.__cldr__(:config).gettext
     routes = env.module |> Module.get_attribute(:phoenix_routes) |> Enum.reverse()
     localized_routes = Cldr.Route.routes(routes)
     forwards = env.module |> Module.get_attribute(:phoenix_forwards)
@@ -316,6 +318,30 @@ defmodule Cldr.Route do
 
         def __routes__ do
           unquote(Macro.escape(localized_routes))
+        end
+      end
+
+      defmodule VerifiedRoutes do
+        defmacro __using__(opts) do
+          gettext_backend = unquote(gettext_backend)
+
+          unless unquote(gettext_backend) do
+            raise "Cldr backend #{unquote(cldr_backend)} does not have a configured Gettext backend."
+          end
+
+          quote do
+            use Phoenix.VerifiedRoutes, unquote(opts)
+            import unquote(__MODULE__), only: :macros
+            require unquote(gettext_backend)
+          end
+        end
+
+        defmacro sigil_q(path, flags) do
+          cldr_locale_names = Cldr.Route.locales_from_unique_gettext_locales(unquote(cldr_backend))
+
+          quote do
+            sigil_p(unquote(path), unquote(flags))
+          end
         end
       end
     end
