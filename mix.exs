@@ -53,7 +53,7 @@ defmodule CldrRoutes.MixProject do
   defp deps do
     [
       {:ex_cldr, "~> 2.32"},
-      {:phoenix, "~> 1.6", override: true},
+      {:phoenix, "~> 1.6"},
       {:phoenix_live_view, "~> 0.18", optional: true},
       {:jason, "~> 1.0"},
       {:gettext, "~> 0.19"},
