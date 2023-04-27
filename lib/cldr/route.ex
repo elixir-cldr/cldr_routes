@@ -336,15 +336,42 @@ defmodule Cldr.Route do
           end
         end
 
-        defmacro sigil_q(path, flags) do
-          cldr_locale_names = Cldr.Route.locales_from_unique_gettext_locales(unquote(cldr_backend))
+        defmacro sigil_q({:<<>>, _meta, _segments} = route, flags) do
+          import Cldr.Route
+          cldr_backend = unquote(cldr_backend)
+          cldr_locale_names = locales_from_unique_gettext_locales(cldr_backend)
+          case_clauses = sigil_q_case_clauses(route, flags, cldr_backend, cldr_locale_names, unquote(gettext_backend))
 
           quote do
-            sigil_p(unquote(path), unquote(flags))
+            case unquote(cldr_backend).get_locale().cldr_locale_name do
+              unquote(case_clauses)
+            end
           end
         end
       end
     end
+  end
+
+  @doc false
+  def sigil_q_case_clauses(route, flags, cldr_backend, cldr_locale_names, gettext_backend) do
+    for cldr_locale_name <- cldr_locale_names do
+      with {:ok, cldr_locale} <- cldr_backend.validate_locale(cldr_locale_name) do
+        if cldr_locale.gettext_locale_name do
+          translated_route =
+            interpolate_and_translate_path(route, cldr_locale, gettext_backend)
+
+          quote do
+            unquote(cldr_locale_name) -> sigil_p(unquote(translated_route), unquote(flags))
+          end
+        else
+          IO.warn("Locale #{inspect cldr_locale_name} has no associated gettext locale. Cannot translate #{inspect route}")
+        end
+      else
+        {:error, {exception, reason}} -> raise exception, reason
+      end
+    end
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(&hd/1)
   end
 
   @doc false
@@ -561,9 +588,25 @@ defmodule Cldr.Route do
     |> Enum.map(& &1.cldr_locale_name)
   end
 
+  @doc false
+  def interpolate_and_translate_path(path, cldr_locale, gettext_backend) do
+    path
+    |> interpolate(cldr_locale)
+    |> combine_string_segments()
+    |> :erlang.iolist_to_binary()
+    |> translate_path(gettext_backend, cldr_locale.gettext_locale_name)
+    |> convert_to_segments
+  end
+
+  defp convert_to_segments(ast) do
+    Macro.prewalk(ast, fn t ->
+      IO.inspect(t)
+    end)
+  end
+
   # Interpolates the locale, language and territory
-  # into he path by splicing the AST
-  defp interpolate(path, locale) do
+  # into the path by splicing the AST
+  def interpolate(path, locale) do
     Macro.prewalk(path, fn
       {{:., _, [Kernel, :to_string]}, _, [{:locale, _, _}]} ->
         to_string(locale.cldr_locale_name) |> String.downcase()
@@ -579,7 +622,7 @@ defmodule Cldr.Route do
     end)
   end
 
-  # Since we are doing com[ile-time translation of the
+  # Since we are doing compile-time translation of the
   # path, the path needs to be a string (not an expression).
   # This function attempts to combine the segments and
   # raises an exception if a string cannot be created.
@@ -611,8 +654,7 @@ defmodule Cldr.Route do
   defp combine_string_segments(ast) do
     raise ArgumentError,
           """
-          The path arugment to a localized route must be a binary that
-          can be resolved at compile time. Found:
+          The path argument to a localized route must be a binary that can be resolved at compile time. Found:
 
           #{Macro.to_string(ast)}
           """
