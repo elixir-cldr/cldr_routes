@@ -41,8 +41,8 @@ The next step is to configure a `Cldr` backend module, including configuring it 
 defmodule MyApp.Cldr do
   use Cldr,
     locales: ["en", "fr"],
-    default_locale: "en".
-    gettext: MyApp.Gettext
+    default_locale: "en",
+    gettext: MyApp.Gettext,
     providers: [Cldr.Route]
 
 end
