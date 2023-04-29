@@ -522,8 +522,12 @@ defmodule Cldr.Route do
     end)
   end
 
-  defp locales_from_unique_gettext_locales(cldr_backend) do
+  @meta_locales [:und, :en_001]
+
+  @doc false
+  def locales_from_unique_gettext_locales(cldr_backend) do
     cldr_backend.known_locale_names()
+    |> Enum.reject(&(&1 in @meta_locales))
     |> Enum.map(&cldr_backend.validate_locale/1)
     |> Enum.map(&elem(&1, 1))
     |> Enum.uniq_by(& &1.gettext_locale_name)
