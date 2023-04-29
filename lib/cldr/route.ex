@@ -381,7 +381,8 @@ defmodule Cldr.Route do
             unquote(cldr_locale_name) -> sigil_p(unquote(translated_route), unquote(flags))
           end
         else
-          IO.warn("Locale #{inspect cldr_locale_name} has no associated gettext locale. Cannot translate #{inspect route}")
+          IO.warn("Locale #{inspect cldr_locale_name} has no associated gettext locale. Cannot translate #{inspect route}", [])
+          nil
         end
       else
         {:error, {exception, reason}} -> raise exception, reason
@@ -592,11 +593,8 @@ defmodule Cldr.Route do
     end)
   end
 
-<<<<<<< HEAD
   @meta_locales [:und, :en_001]
 
-=======
->>>>>>> b08a671 (Plumbing for sigil_q; delegates to sigil_p for now)
   @doc false
   def locales_from_unique_gettext_locales(cldr_backend) do
     cldr_backend.known_locale_names()
