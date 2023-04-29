@@ -627,7 +627,7 @@ defmodule Cldr.Route do
   end
 
   defp helper_name(_controller, locale, configured_helper) do
-    configured_helper <> "_" <> locale
+    to_string(configured_helper) <> "_" <> locale
   end
 
   defp get_option([_controller, _action, options], field) do

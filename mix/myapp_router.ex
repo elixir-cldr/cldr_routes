@@ -49,6 +49,10 @@ defmodule MyApp.Router do
     live "/columns/:page", PageController
   end
 
+  localize "fr" do
+    live "/pages/columns/:page", PageController, :index, as: :article
+  end
+
   # Live routes
   live_session :non_auth_user do
     scope "/user/", MyAppWeb do
