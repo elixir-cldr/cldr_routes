@@ -322,6 +322,12 @@ defmodule Cldr.Route do
       end
 
       defmodule VerifiedRoutes do
+        @moduledoc """
+        Implaments sigil_q to support localized verified
+        routes.
+
+        """
+
         defmacro __using__(opts) do
           gettext_backend = unquote(gettext_backend)
 
@@ -336,18 +342,42 @@ defmodule Cldr.Route do
           end
         end
 
-<<<<<<< HEAD
+        @doc """
+        Sigil_q implements localized verified routes for Phoenix
+        1.7 and later.
+
+        Adding
+        ```
+        use MyApp.Router.VerifiedRoutes,
+          router: MyApp.Router,
+          endpoint: MyApp.Endpoint
+        ```
+        to a module gives access to `sigil_q` which is used identically to
+        Phoenix `sigil_p`. In fact the result of using `sigil_q` is code that
+        looks like this:
+
+        ```
+        # ~q"/users" generates the following code for a
+        # Cldr backend that has configured the locales
+        # :en, :fr and :de
+
+        case MyApp.Cldr.get_locale().cldr_locale_name do
+          :de -> ~p"/users_de"
+          :en -> ~p"/users"
+          :fr -> ~p"/users_fr"
+        end
+        ```
+
+        """
         defmacro sigil_q({:<<>>, _meta, _segments} = route, flags) do
           import Cldr.Route
           cldr_backend = unquote(cldr_backend)
           cldr_locale_names = locales_from_unique_gettext_locales(cldr_backend)
           case_clauses = sigil_q_case_clauses(route, flags, cldr_backend, cldr_locale_names, unquote(gettext_backend))
 
-          code =
-            quote do
-              case unquote(cldr_backend).get_locale().cldr_locale_name do
-                unquote(case_clauses)
-              end
+          quote do
+            case unquote(cldr_backend).get_locale().cldr_locale_name do
+              unquote(case_clauses)
             end
 
           # code
@@ -356,14 +386,6 @@ defmodule Cldr.Route do
           # |> IO.puts()
 
           code
-=======
-        defmacro sigil_q(path, flags) do
-          cldr_locale_names = Cldr.Route.locales_from_unique_gettext_locales(unquote(cldr_backend))
-
-          quote do
-            sigil_p(unquote(path), unquote(flags))
-          end
->>>>>>> b08a671 (Plumbing for sigil_q; delegates to sigil_p for now)
         end
       end
     end
