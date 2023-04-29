@@ -1,5 +1,13 @@
 # Changelog
 
+## Cldr Routes v0.6.4
+
+This is the changelog for Cldr Routes version 0.6.4 released on April 29th, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+
+### Bug Fixes
+
+* Fixes route `:as` option to correctly stringify atom names. Closes #14. Thanks to @krns for the report.
+
 ## Cldr Routes v0.6.3
 
 This is the changelog for Cldr Routes version 0.6.2 released on April 27th, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
