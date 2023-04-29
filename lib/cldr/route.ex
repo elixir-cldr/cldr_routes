@@ -342,11 +342,19 @@ defmodule Cldr.Route do
           cldr_locale_names = locales_from_unique_gettext_locales(cldr_backend)
           case_clauses = sigil_q_case_clauses(route, flags, cldr_backend, cldr_locale_names, unquote(gettext_backend))
 
-          quote do
-            case unquote(cldr_backend).get_locale().cldr_locale_name do
-              unquote(case_clauses)
+          code =
+            quote do
+              case unquote(cldr_backend).get_locale().cldr_locale_name do
+                unquote(case_clauses)
+              end
             end
-          end
+
+          # code
+          # |> Macro.to_string()
+          # |> Code.format_string!()
+          # |> IO.puts()
+
+          code
         end
       end
     end
@@ -594,14 +602,16 @@ defmodule Cldr.Route do
     |> interpolate(cldr_locale)
     |> combine_string_segments()
     |> :erlang.iolist_to_binary()
-    |> translate_path(gettext_backend, cldr_locale.gettext_locale_name)
+    |> translate_path_now(gettext_backend, cldr_locale)
     |> convert_to_segments
   end
 
-  defp convert_to_segments(ast) do
-    Macro.prewalk(ast, fn t ->
-      IO.inspect(t)
-    end)
+  defp convert_to_segments(ast) when is_binary(ast) do
+    {:<<>>, [], [ast]}
+  end
+
+  defp convert_to_segments(ast) when is_list(ast) do
+    {:<<>>, [], ast}
   end
 
   # Interpolates the locale, language and territory
@@ -620,6 +630,38 @@ defmodule Cldr.Route do
       other ->
         other
     end)
+  end
+
+  def translate_path_now(path, gettext_backend, locale) do
+    Macro.prewalk(path, fn segment ->
+     translate_segment_now(gettext_backend, locale, segment)
+    end)
+  end
+
+  defp translate_segment_now(_gettext_backend, _locale, "" = segment), do: segment
+  defp translate_segment_now(_gettext_backend, _locale, @interpolate <> _rest = segment), do: segment
+  defp translate_segment_now(_gettext_backend, _locale, segment) when not is_binary(segment), do: segment
+
+  defp translate_segment_now(gettext_backend, locale, segment) when is_binary(segment) do
+    segment
+    |> String.split("/")
+    |> Enum.map(fn
+      ":locale" ->
+        to_string(locale.cldr_locale_name)
+
+      ":territory" ->
+        locale.territory
+        |> to_string()
+        |> String.downcase()
+
+      ":language" ->
+        locale.language
+
+      segment ->
+        Gettext.put_locale(locale.gettext_locale_name)
+        Gettext.dgettext(gettext_backend, @domain, segment)
+    end)
+    |> Enum.join("/")
   end
 
   # Since we are doing compile-time translation of the
