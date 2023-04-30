@@ -379,13 +379,7 @@ defmodule Cldr.Route do
             case unquote(cldr_backend).get_locale().cldr_locale_name do
               unquote(case_clauses)
             end
-
-          # code
-          # |> Macro.to_string()
-          # |> Code.format_string!()
-          # |> IO.puts()
-
-          code
+          end
         end
       end
     end
