@@ -33,16 +33,17 @@ defmodule Sigil_q.Test do
   end
 
   test "sigil_q with multiple path segments and interpolation" do
-   MyApp.Cldr.put_locale(:fr)
-   user_id = 1
-   face_id = 2
-   assert ~q[/users/#{user_id}/faces/#{face_id}/:locale/visages] == "/users_fr/1/faces_fr/2/fr/visages"
- end
+    MyApp.Cldr.put_locale(:fr)
+    user_id = 1
+    face_id = 2
 
- test "sigil_q with query params" do
-   MyApp.Cldr.put_locale(:en)
-   assert ~q"/users/17?admin=true&active=false" == "/users/17?admin=true&active=false"
-   assert ~q"/users/17?#{[admin: true]}" == "/users/17?admin=true"
- end
+    assert ~q[/users/#{user_id}/faces/#{face_id}/:locale/visages] ==
+             "/users_fr/1/faces_fr/2/fr/visages"
+  end
 
+  test "sigil_q with query params" do
+    MyApp.Cldr.put_locale(:en)
+    assert ~q"/users/17?admin=true&active=false" == "/users/17?admin=true&active=false"
+    assert ~q"/users/17?#{[admin: true]}" == "/users/17?admin=true"
+  end
 end

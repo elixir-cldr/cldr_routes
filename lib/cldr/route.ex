@@ -373,7 +373,15 @@ defmodule Cldr.Route do
           import Cldr.Route
           cldr_backend = unquote(cldr_backend)
           cldr_locale_names = locales_from_unique_gettext_locales(cldr_backend)
-          case_clauses = sigil_q_case_clauses(route, flags, cldr_backend, cldr_locale_names, unquote(gettext_backend))
+
+          case_clauses =
+            sigil_q_case_clauses(
+              route,
+              flags,
+              cldr_backend,
+              cldr_locale_names,
+              unquote(gettext_backend)
+            )
 
           quote do
             case unquote(cldr_backend).get_locale().cldr_locale_name do
@@ -390,14 +398,17 @@ defmodule Cldr.Route do
     for cldr_locale_name <- cldr_locale_names do
       with {:ok, cldr_locale} <- cldr_backend.validate_locale(cldr_locale_name) do
         if cldr_locale.gettext_locale_name do
-          translated_route =
-            interpolate_and_translate_path(route, cldr_locale, gettext_backend)
+          translated_route = interpolate_and_translate_path(route, cldr_locale, gettext_backend)
 
           quote do
             unquote(cldr_locale_name) -> sigil_p(unquote(translated_route), unquote(flags))
           end
         else
-          IO.warn("Locale #{inspect cldr_locale_name} has no associated gettext locale. Cannot translate #{inspect route}", [])
+          IO.warn(
+            "Locale #{inspect(cldr_locale_name)} has no associated gettext locale. Cannot translate #{inspect(route)}",
+            []
+          )
+
           nil
         end
       else
@@ -649,13 +660,17 @@ defmodule Cldr.Route do
 
   def translate_path_now(path, gettext_backend, locale) do
     Macro.prewalk(path, fn segment ->
-     translate_segment_now(gettext_backend, locale, segment)
+      translate_segment_now(gettext_backend, locale, segment)
     end)
   end
 
   defp translate_segment_now(_gettext_backend, _locale, "" = segment), do: segment
-  defp translate_segment_now(_gettext_backend, _locale, @interpolate <> _rest = segment), do: segment
-  defp translate_segment_now(_gettext_backend, _locale, segment) when not is_binary(segment), do: segment
+
+  defp translate_segment_now(_gettext_backend, _locale, @interpolate <> _rest = segment),
+    do: segment
+
+  defp translate_segment_now(_gettext_backend, _locale, segment) when not is_binary(segment),
+    do: segment
 
   defp translate_segment_now(gettext_backend, locale, segment) when is_binary(segment) do
     segment
@@ -672,20 +687,15 @@ defmodule Cldr.Route do
     |> List.wrap()
   end
 
-  defp translate_segment_parts([":locale" = part | rest], gettext_backend, locale) do
-    [translate_segment_part(part, gettext_backend, locale)  | translate_segment_parts(rest, gettext_backend, locale)]
-  end
-
-  defp translate_segment_parts([":territory" = part | rest], gettext_backend, locale) do
-    [translate_segment_part(part, gettext_backend, locale) | translate_segment_parts(rest, gettext_backend, locale)]
-  end
-
-  defp translate_segment_parts([":language" = part | rest], gettext_backend, locale) do
-    [translate_segment_part(part, gettext_backend, locale) | translate_segment_parts(rest, gettext_backend, locale)]
-  end
-
   defp translate_segment_parts([part | rest], gettext_backend, locale) do
-    [translate_segment_part(part, gettext_backend, locale) | translate_segment_parts(rest, gettext_backend, locale)]
+    [
+      translate_segment_part(part, gettext_backend, locale)
+      | translate_segment_parts(rest, gettext_backend, locale)
+    ]
+  end
+
+  defp translate_segment_part("", _gettext_backend, _locale) do
+    ""
   end
 
   defp translate_segment_part(":locale", _gettext_backend, locale) do
