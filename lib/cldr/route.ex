@@ -632,18 +632,7 @@ defmodule Cldr.Route do
   def interpolate_and_translate_path(path, cldr_locale, gettext_backend) do
     path
     |> interpolate(cldr_locale)
-    |> combine_string_segments()
-    |> :erlang.iolist_to_binary()
     |> translate_path_now(gettext_backend, cldr_locale)
-    |> convert_to_segments
-  end
-
-  defp convert_to_segments(ast) when is_binary(ast) do
-    {:<<>>, [], [ast]}
-  end
-
-  defp convert_to_segments(ast) when is_list(ast) do
-    {:<<>>, [], ast}
   end
 
   # Interpolates the locale, language and territory
@@ -677,23 +666,51 @@ defmodule Cldr.Route do
   defp translate_segment_now(gettext_backend, locale, segment) when is_binary(segment) do
     segment
     |> String.split("/")
-    |> Enum.map(fn
-      ":locale" ->
-        to_string(locale.cldr_locale_name)
-
-      ":territory" ->
-        locale.territory
-        |> to_string()
-        |> String.downcase()
-
-      ":language" ->
-        locale.language
-
-      segment ->
-        Gettext.put_locale(locale.gettext_locale_name)
-        Gettext.dgettext(gettext_backend, @domain, segment)
-    end)
+    |> translate_segment_parts(gettext_backend, locale)
     |> Enum.join("/")
+  end
+
+  defp translate_segment_parts([last_part], gettext_backend, locale) do
+    [last_part | rest] = Regex.split(~r/[#\?]/, last_part, include_captures: true)
+
+    [translate_segment_part(last_part, gettext_backend, locale) | rest]
+    |> :erlang.iolist_to_binary()
+    |> List.wrap()
+  end
+
+  defp translate_segment_parts([":locale" = part | rest], gettext_backend, locale) do
+    [translate_segment_part(part, gettext_backend, locale)  | translate_segment_parts(rest, gettext_backend, locale)]
+  end
+
+  defp translate_segment_parts([":territory" = part | rest], gettext_backend, locale) do
+    [translate_segment_part(part, gettext_backend, locale) | translate_segment_parts(rest, gettext_backend, locale)]
+  end
+
+  defp translate_segment_parts([":language" = part | rest], gettext_backend, locale) do
+    [translate_segment_part(part, gettext_backend, locale) | translate_segment_parts(rest, gettext_backend, locale)]
+  end
+
+  defp translate_segment_parts([part | rest], gettext_backend, locale) do
+    [translate_segment_part(part, gettext_backend, locale) | translate_segment_parts(rest, gettext_backend, locale)]
+  end
+
+  defp translate_segment_part(":locale", _gettext_backend, locale) do
+    locale.canonical_locale_name
+  end
+
+  defp translate_segment_part(":territory", _gettext_backend, locale) do
+    locale.territory
+    |> to_string()
+    |> String.downcase()
+  end
+
+  defp translate_segment_part(":language", _gettext_backend, locale) do
+    locale.language
+  end
+
+  defp translate_segment_part(part, gettext_backend, locale) do
+    Gettext.put_locale(locale.gettext_locale_name)
+    Gettext.dgettext(gettext_backend, @domain, part)
   end
 
   # Since we are doing compile-time translation of the
