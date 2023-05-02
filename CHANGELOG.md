@@ -1,5 +1,15 @@
 # Changelog
 
+## Cldr Routes v1.0.0
+
+This is the changelog for Cldr Routes version 1.0.0 released on May 2nd, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+
+### Enhancements
+
+* Supports localized verified routes with `~q` (`Sigil_q`).
+
+* Supports Phoenix 1.7 and later only.
+
 ## Cldr Routes v0.6.4
 
 This is the changelog for Cldr Routes version 0.6.4 released on April 29th, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
