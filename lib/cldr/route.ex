@@ -352,9 +352,9 @@ defmodule Cldr.Route do
           router: MyApp.Router,
           endpoint: MyApp.Endpoint
         ```
-        to a module gives access to `sigil_q` which is used identically to
-        Phoenix `sigil_p`. In fact the result of using `sigil_q` is code that
-        looks like this:
+        to a module gives access to `sigil_q` which is functionally equal to
+        Phoenix Verified Routes `sigil_p`. In fact the result of using `sigil_q`
+        is code that looks like this:
 
         ```
         # ~q"/users" generates the following code for a
@@ -367,6 +367,16 @@ defmodule Cldr.Route do
           :fr -> ~p"/users_fr"
         end
         ```
+
+        ### Locale interpolation
+
+        Some use cases call for the locale, language or territory
+        to be part of the URL. `Sigl_q` makes this easy by providing
+        the following interpolations:
+
+        `:locale` is replaced with cldr locale name.
+        `:language` is replaced with the cldr language code.
+        `:territory` is replaced with the cldr territory code.
 
         """
         defmacro sigil_q({:<<>>, _meta, _segments} = route, flags) do
@@ -699,7 +709,9 @@ defmodule Cldr.Route do
   end
 
   defp translate_segment_part(":locale", _gettext_backend, locale) do
-    locale.canonical_locale_name
+    locale.cldr_locale_name
+    |> to_string()
+    |> String.downcase()
   end
 
   defp translate_segment_part(":territory", _gettext_backend, locale) do

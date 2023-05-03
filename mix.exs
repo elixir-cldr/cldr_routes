@@ -7,7 +7,7 @@ defmodule CldrRoutes.MixProject do
     [
       app: :ex_cldr_routes,
       version: @version,
-      elixir: "~> 1.10",
+      elixir: "~> 1.11",
       description: "Cldr-based localized route generation and path helpers for Phoenix",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
@@ -58,7 +58,7 @@ defmodule CldrRoutes.MixProject do
       {:jason, "~> 1.0"},
       {:gettext, "~> 0.19"},
       {:ex_doc, "~> 0.18", only: [:release, :dev]},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false, optional: true}
+      {:dialyxir, "~> 1.0", only: [:dev, :release], runtime: false, optional: true}
     ]
   end
 

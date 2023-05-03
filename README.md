@@ -15,6 +15,8 @@ As a result, users can enter URLs using localised terms which can enhance user e
 
 Similarly, localised path and URL helpers are generated that wrap the standard [Phoenix helpers](https://hexdocs.pm/phoenix/routing.html#path-helpers) to support generating localised paths and URLs.
 
+Lastly, Localized Verified Routes, introduced in Phoenix 1.7, are supported and their use encouraged in preference to URL Helpers. Localized Verified Routes are specified with the `~q` sigil in the same manner as Phoenix Verified Routes `~p`.
+
 ## Setting up
 
 A `Cldr` backend module that configures an associated `gettext` backend is required. In addition, a `Gettext` backend must be configured and added to the `Cldr` configuration.
@@ -165,6 +167,50 @@ def controller do
 end
 ```
 
+## Localized Verified Routes
+
+Sigil_q implements localized verified routes for Phoenix 1.7 and later.
+
+Adding
+```
+use MyApp.Router.VerifiedRoutes,
+  router: MyApp.Router,
+  endpoint: MyApp.Endpoint
+```
+to a module gives access to `sigil_q` which is functionally equal to Phoenix Verified Routes `sigil_p`. In fact the result of using `sigil_q` is code that looks like this:
+
+```
+# ~q"/users" generates the following code for a
+# Cldr backend that has configured the locales
+# :en, :fr and :de
+
+case MyApp.Cldr.get_locale().cldr_locale_name do
+  :de -> ~p"/users_de"
+  :en -> ~p"/users"
+  :fr -> ~p"/users_fr"
+end
+```
+
+### Locale interpolation
+
+Some use cases call for the locale, language or territory to be part of the URL. `Sigl_q` makes this easy by providing
+the following interpolations into a `Sigil_q` path:
+
+* `:locale` is replaced with Cldr locale name.
+* `:language` is replaced with the Cldr language code.
+* `:territory` is replaced with the Cldr territory code.
+
+# ~q"/users/:locale" generates the following code for a
+# Cldr backend that has configured the locales
+# :en, :fr and :de. Note the interpolation of the locale
+# information which is performed at compile time.
+
+case MyApp.Cldr.get_locale().cldr_locale_name do
+  :de -> ~p"/users_de/de"
+  :en -> ~p"/users/en"
+  :fr -> ~p"/users_fr/fr"
+end
+```
 ## Generating link headers
 
 When the same content is produced in multiple languages it is important to cross-link the different editions of the content to each other. This is good practise in general but strong advised by [goggle](https://developers.google.com/search/docs/advanced/crawling/localized-versions) to reduce SEO risks for your site.
@@ -249,7 +295,7 @@ The package can be installed by adding `ex_cldr_routes` to your list of dependen
 ```elixir
 def deps do
   [
-    {:ex_cldr_routes, "~> 0.6.0"}
+    {:ex_cldr_routes, "~> 1.0.0"}
   ]
 end
 ```
