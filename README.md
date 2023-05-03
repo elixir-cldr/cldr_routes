@@ -169,17 +169,17 @@ end
 
 ## Localized Verified Routes
 
-Sigil_q implements localized verified routes for Phoenix 1.7 and later.
+`Sigil_q` implements localized verified routes for Phoenix 1.7 and later.
 
 Adding
-```
+```elixir
 use MyApp.Router.VerifiedRoutes,
   router: MyApp.Router,
   endpoint: MyApp.Endpoint
 ```
 to a module gives access to `sigil_q` which is functionally equal to Phoenix Verified Routes `sigil_p`. In fact the result of using `sigil_q` is code that looks like this:
 
-```
+```elixir
 # ~q"/users" generates the following code for a
 # Cldr backend that has configured the locales
 # :en, :fr and :de
@@ -200,6 +200,7 @@ the following interpolations into a `Sigil_q` path:
 * `:language` is replaced with the Cldr language code.
 * `:territory` is replaced with the Cldr territory code.
 
+```elixir
 # ~q"/users/:locale" generates the following code for a
 # Cldr backend that has configured the locales
 # :en, :fr and :de. Note the interpolation of the locale
