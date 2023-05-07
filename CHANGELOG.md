@@ -1,5 +1,13 @@
 # Changelog
 
+## Cldr Routes v1.0.1
+
+This is the changelog for Cldr Routes version 1.0.1 released on May 7th, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+
+### Bug Fixes
+
+* Fix dialyzer error. Thanks to @rubas for the report.
+
 ## Cldr Routes v1.0.0
 
 This is the changelog for Cldr Routes version 1.0.0 released on May 3rd, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)

@@ -1,7 +1,7 @@
 defmodule CldrRoutes.MixProject do
   use Mix.Project
 
-  @version "1.0.0"
+  @version "1.0.1"
 
   def project do
     [
@@ -24,7 +24,7 @@ defmodule CldrRoutes.MixProject do
       docs: docs(),
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore_warnings",
-        plt_add_apps: ~w(jason mix phoenix_live_view phoenix_html)a
+        plt_add_apps: ~w(jason mix phoenix_live_view phoenix_html gettext)a
       ]
     ]
   end

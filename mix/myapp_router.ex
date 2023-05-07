@@ -1,6 +1,5 @@
 defmodule MyApp.Router do
-  use Phoenix.Router
-  import Phoenix.LiveView.Router
+  use MyAppWeb, :router
   use MyApp.Cldr.Routes
 
  # Nested routes to an arbitrary level (testing with 3)

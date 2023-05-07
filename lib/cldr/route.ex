@@ -237,7 +237,7 @@ defmodule Cldr.Route do
 
           Module.put_attribute(caller, :_cldr_backend, unquote(backend))
 
-          quote do
+          quote location: :keep do
             import Cldr.Route, only: :macros
             @before_compile Cldr.Route
           end
@@ -254,15 +254,15 @@ defmodule Cldr.Route do
   @doc false
   def confirm_backend_has_gettext!(backend, %Cldr.Config{gettext: nil}) do
     raise ArgumentError,
-          """
-          The Cldr backend #{inspect(backend)} does not have a Gettext
-          module configured.
+      """
+      The Cldr backend #{inspect(backend)} does not have a Gettext
+      module configured.
 
-          A Gettext module must be configured in order to define localized
-          routes. In addition, translations must be provided for the Gettext
-          backend under the "routes" domain (ie in a file "routes.pot" for
-          each configured Gettext locale).
-          """
+      A Gettext module must be configured in order to define localized
+      routes. In addition, translations must be provided for the Gettext
+      backend under the "routes" domain (ie in a file "routes.pot" for
+      eachconfigured Gettext locale).
+      """
   end
 
   def confirm_backend_has_gettext!(_backend, %Cldr.Config{} = _config) do
@@ -298,7 +298,7 @@ defmodule Cldr.Route do
     helpers_moduledoc = Module.get_attribute(env.module, :helpers_moduledoc)
     LocalizedHelpers.define(env, routes_with_exprs, docs: helpers_moduledoc)
 
-    quote do
+    quote location: :keep do
       defmodule LocalizedRoutes do
         @moduledoc """
         This module exists only to host route definitions.
@@ -331,11 +331,7 @@ defmodule Cldr.Route do
         defmacro __using__(opts) do
           gettext_backend = unquote(gettext_backend)
 
-          unless unquote(gettext_backend) do
-            raise "Cldr backend #{unquote(cldr_backend)} does not have a configured Gettext backend."
-          end
-
-          quote do
+          quote location: :keep do
             use Phoenix.VerifiedRoutes, unquote(opts)
             import unquote(__MODULE__), only: :macros
             require unquote(gettext_backend)
@@ -393,7 +389,7 @@ defmodule Cldr.Route do
               unquote(gettext_backend)
             )
 
-          quote do
+          quote location: :keep do
             case unquote(cldr_backend).get_locale().cldr_locale_name do
               unquote(case_clauses)
             end
@@ -410,7 +406,7 @@ defmodule Cldr.Route do
         if cldr_locale.gettext_locale_name do
           translated_route = interpolate_and_translate_path(route, cldr_locale, gettext_backend)
 
-          quote do
+          quote location: :keep do
             unquote(cldr_locale_name) -> sigil_p(unquote(translated_route), unquote(flags))
           end
         else
@@ -455,7 +451,7 @@ defmodule Cldr.Route do
   defmacro localize(do: {:__block__, meta, routes}) do
     translated_routes =
       for route <- routes do
-        quote do
+        quote location: :keep do
           localize(do: unquote(route))
         end
       end
@@ -472,7 +468,7 @@ defmodule Cldr.Route do
       raise "Cldr backend #{cldr_backend} does not have a configured Gettext backend."
     end
 
-    quote do
+    quote location: :keep do
       require unquote(gettext_backend)
       localize(unquote(cldr_locale_names), do: unquote(route))
     end
@@ -496,7 +492,7 @@ defmodule Cldr.Route do
            when is_list(cldr_locale_names) do
     translated_routes =
       for route <- routes do
-        quote do
+        quote location: :keep do
           localize(unquote(cldr_locale_names), do: unquote(route))
         end
       end
@@ -527,7 +523,7 @@ defmodule Cldr.Route do
   defmacro localize(locale, do: {:__block__, meta, routes}) do
     translated_routes =
       for route <- routes do
-        quote do
+        quote location: :keep do
           localize(unquote(locale), do: unquote(route))
         end
       end
@@ -536,7 +532,7 @@ defmodule Cldr.Route do
   end
 
   defmacro localize(locale, do: route) do
-    quote do
+    quote location: :keep do
       localize(unquote(locale), unquote(route))
     end
   end
@@ -546,7 +542,7 @@ defmodule Cldr.Route do
            when fun != :localize do
     nested = localize_nested_resources(locale, nested)
 
-    quote do
+    quote location: :keep do
       localize unquote(locale) do
         resources unquote(path), unquote(controller) do
           unquote(nested)
@@ -592,13 +588,13 @@ defmodule Cldr.Route do
         |> add_to_route(:private, :original_path, original_path)
         |> localise_helper(verb, cldr_locale.gettext_locale_name)
 
-      quote do
+      quote location: :keep do
         unquote({verb, meta, [translated_path | args]})
       end
     else
       warn_no_gettext_locale(cldr_locale_name, route)
 
-      quote do
+      quote location: :keep do
         unquote({verb, meta, [path | args]})
       end
     end
@@ -607,21 +603,21 @@ defmodule Cldr.Route do
   defp localize_nested_resources(locale, nested) do
     Macro.postwalk(nested, fn
       {:resources, _, [_path, _meta, _args, [do: {:resources, _, _}]]} = resources ->
-        quote do
+        quote location: :keep do
           localize unquote(locale) do
             unquote(resources)
           end
         end
 
       {:resources, _, [_path, _meta, [do: {:resources, _, _}]]} = resources ->
-        quote do
+        quote location: :keep do
           localize unquote(locale) do
             unquote(resources)
           end
         end
 
       {:resources, _, _} = route ->
-        quote do
+        quote location: :keep do
           localize(unquote(locale), unquote(route))
         end
 
