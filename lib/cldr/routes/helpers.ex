@@ -1,4 +1,4 @@
-defmodule Cldr.Route.LocalizedHelpers do
+defmodule Cldr.Routes.LocalizedHelpers do
   @moduledoc """
   Generates a module that implements localised helpers.
 
@@ -44,7 +44,7 @@ defmodule Cldr.Route.LocalizedHelpers do
                      Module with localized helpers generated from #{inspect(unquote(env.module))}.
                      """
 
-        alias Cldr.Route.LocalizedHelpers
+        alias Cldr.Routes.LocalizedHelpers
 
         unquote_splicing(localized_helpers)
         unquote_splicing(non_localized_helpers)
@@ -271,7 +271,7 @@ defmodule Cldr.Route.LocalizedHelpers do
                    unquote(helper),
                    params
                  ) do
-              Cldr.Route.LocalizedHelpers.raise_route_error(
+              Cldr.Routes.LocalizedHelpers.raise_route_error(
                 __MODULE__,
                 "#{unquote(proxy_helper)}_#{suffix}",
                 arity,
@@ -354,7 +354,7 @@ defmodule Cldr.Route.LocalizedHelpers do
               Phoenix.HTML.safe()
 
       def hreflang_links(url_map) do
-        Cldr.Route.LocalizedHelpers.hreflang_links(url_map)
+        Cldr.Routes.LocalizedHelpers.hreflang_links(url_map)
       end
     end
   end
@@ -502,7 +502,7 @@ defmodule Cldr.Route.LocalizedHelpers do
       ...>   "en" => "https://localhost/users/1",
       ...>   "fr" => "https://localhost/utilisateurs/1"
       ...>  }
-      iex> Cldr.Route.LocalizedHelpers.hreflang_links(links)
+      iex> Cldr.Routes.LocalizedHelpers.hreflang_links(links)
       {
         :safe,
         [
@@ -512,10 +512,10 @@ defmodule Cldr.Route.LocalizedHelpers do
         ]
       }
 
-      iex> Cldr.Route.LocalizedHelpers.hreflang_links(nil)
+      iex> Cldr.Routes.LocalizedHelpers.hreflang_links(nil)
       {:safe, []}
 
-      iex> Cldr.Route.LocalizedHelpers.hreflang_links(%{})
+      iex> Cldr.Routes.LocalizedHelpers.hreflang_links(%{})
       {:safe, []}
 
   """

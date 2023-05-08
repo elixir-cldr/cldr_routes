@@ -13,8 +13,8 @@ defmodule Cldr.Route.Test do
   alias MyApp.Test.Backend
   alias Cldr.Route.Test.MyTestApp.Router
 
-  doctest Cldr.Route
-  doctest Cldr.Route.LocalizedHelpers
+  doctest Cldr.Routes
+  doctest Cldr.Routes.LocalizedHelpers
   doctest MyApp.Router.LocalizedHelpers
 
   describe "Routes" do

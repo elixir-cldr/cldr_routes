@@ -45,12 +45,12 @@ defmodule MyApp.Cldr do
     locales: ["en", "fr"],
     default_locale: "en",
     gettext: MyApp.Gettext,
-    providers: [Cldr.Route]
+    providers: [Cldr.Routes, Cldr.Router]
 
 end
 ```
 
-*Note* the addition of `Cldr.Route` to the `:providers` configuration key is required.
+*Note* the addition of `Cldr.Routes` and `Cldr.Router` to the `:providers` configuration key is required.
 
 ## Define Localized Routes
 
@@ -139,41 +139,13 @@ This information is also used by functions in the [ex_cldr_plugs](https://hex.pm
 * Store the identified locale in the session in `Cldr.Plug.PutSession`
 * Propogate the locale from the session into a LiveView process during the `on_mount/3` callback with `Cldr.Plug.put_locale_from_session/2`
 
-### Configuring Localized Helpers as default
-
-Since `LocalizedHelpers` have the same semantics and API as the standard `Helpers` module it is possible to update the generated Phoenix configuration to use the `LocalizedHelpers` module by default.  Assuming the presence of `myapp_web.ex` defining the module `MyAppWeb` then changing the `view_helpers` function to:
-```elixir
-defp view_helpers do
-  quote do
-    ...
-
-    import MyAppWeb.ErrorHelpers
-    import MyAppWeb.Gettext
-    alias MyAppWeb.Router.LocalizedHelpers, as: Routes
-  end
-end
-```
-will result in the automatic use of the localized helpers rather than the standard helpers. The `contoller/0` function should similarly be updated:
-
-```elixir
-def controller do
-  quote do
-    use Phoenix.Controller, namespace: MyAppWeb
-
-    import Plug.Conn
-    import MyAppWeb.Gettext
-    alias MyAppWeb.Router.LocalizedHelpers, as: Routes
-  end
-end
-```
-
 ## Localized Verified Routes
 
 `Sigil_q` implements localized verified routes for Phoenix 1.7 and later.
 
 Adding
 ```elixir
-use MyApp.Router.VerifiedRoutes,
+use MyApp.Cldr.Router.VerifiedRoutes,
   router: MyApp.Router,
   endpoint: MyApp.Endpoint
 ```
@@ -212,6 +184,41 @@ case MyApp.Cldr.get_locale().cldr_locale_name do
   :fr -> ~p"/users_fr/fr"
 end
 ```
+
+## Phoenix MyWebApp configuration
+
+Since localized routes, route helpers and verified routes have the same function and API as the standard Phoenix equivalent modules it is possible to update the generated Phoenix configuration. Assuming the presence of `myapp_web.ex` defining the module `MyAppWeb` then the following changes should be considered in the `my_web_app.ex` file:
+
+### Router
+```elixir
+def router do
+  quote do
+    use Phoenix.Router, helpers: false
+    
+    # Add localized routes
+    use MyApp.Cldr.Routes, helpers: false
+
+    # Import common connection and controller functions to use in pipelines
+    import Plug.Conn
+    import Phoenix.Controller
+    import Phoenix.LiveView.Router
+  end
+end
+```
+
+### Verified Routes
+Change `Phoenix.VerifiedRoutes` to `MyApp.Cldr.Router.VerifiedRoutes`:
+```elixir
+  def verified_routes do
+    quote do
+      use MyApp.Cldr.Router.VerifiedRoutes,
+        endpoint: PhxCldrWeb.Endpoint,
+        router: PhxCldrWeb.Router,
+        statics: PhxCldrWeb.static_paths()
+    end
+  end
+```
+
 ## Generating link headers
 
 When the same content is produced in multiple languages it is important to cross-link the different editions of the content to each other. This is good practise in general but strong advised by [goggle](https://developers.google.com/search/docs/advanced/crawling/localized-versions) to reduce SEO risks for your site.
