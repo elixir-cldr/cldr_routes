@@ -1,6 +1,6 @@
 defmodule Cldr.Router do
   @moduledoc """
-  Implaments a Cldr backend module to provide support for
+  Implements a Cldr backend provicer module to support for
   localized verified routes.
 
   """
