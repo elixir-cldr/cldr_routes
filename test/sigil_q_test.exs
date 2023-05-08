@@ -1,7 +1,7 @@
 defmodule Sigil_q.Test do
   use ExUnit.Case
 
-  use MyApp.Cldr.Router.VerifiedRoutes, router: MyApp.Router, endpoint: MyApp.Endpoint
+  use MyApp.Cldr.VerifiedRoutes, router: MyApp.Router, endpoint: MyApp.Endpoint
 
   test "sigil_q for default locale" do
     assert ~q[/users] == "/users"

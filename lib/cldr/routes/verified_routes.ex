@@ -1,17 +1,12 @@
-defmodule Cldr.Router do
-  @moduledoc """
-  Implements a Cldr backend provicer module to support for
-  localized verified routes.
+defmodule Cldr.VerifiedRoutes do
+  @moduledoc false
 
-  """
-
-  @doc false
   def cldr_backend_provider(config) do
     backend = config.backend
     gettext = config.gettext
 
     quote location: :keep do
-      defmodule Router.VerifiedRoutes do
+      defmodule VerifiedRoutes do
         @moduledoc """
         Implements localized verified routes.
 
@@ -29,7 +24,7 @@ defmodule Cldr.Router do
         configure instead:
 
         ```
-        use MyApp.Cldr.Routes.VerifiedRoutes,
+        use MyApp.Cldr.VerifiedRoutes,
           router: MyApp.Router,
           endpoint: MyApp.Endpoint
         ```
@@ -51,7 +46,7 @@ defmodule Cldr.Router do
           quote location: :keep do
             use Phoenix.VerifiedRoutes, unquote(opts)
             require unquote(gettext)
-            import unquote(backend).Router.VerifiedRoutes, only: :macros
+            import unquote(backend).VerifiedRoutes, only: :macros
           end
         end
 
@@ -61,7 +56,7 @@ defmodule Cldr.Router do
 
         Adding
         ```
-        use MyApp.Cldr.Routes.VerifiedRoutes,
+        use MyApp.Cldr.VerifiedRoutes,
           router: MyApp.Router,
           endpoint: MyApp.Endpoint
         ```
@@ -94,7 +89,7 @@ defmodule Cldr.Router do
 
         """
         defmacro sigil_q({:<<>>, _meta, _segments} = route, flags) do
-          import Cldr.Router, only: [sigil_q_case_clauses: 5]
+          import Cldr.VerifiedRoutes, only: [sigil_q_case_clauses: 5]
           import Cldr.Routes, only: [locales_from_unique_gettext_locales: 1]
 
           backend = unquote(backend)

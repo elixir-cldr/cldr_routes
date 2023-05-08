@@ -1,7 +1,7 @@
 defmodule Cldr.Routes do
   @moduledoc """
-  Generate localized routes and route helper
-  modules.
+  Generate localized route generation, locaverified routes
+  and route helper modules.
 
   This module when `use`d , provides a `localize/1`
   macro that is designed to wrap the standard Phoenix
@@ -40,7 +40,7 @@ defmodule Cldr.Routes do
       locales: ["en", "fr"],
       default_locale: "en".
       gettext: MyApp.Gettext
-      providers: [Cldr.Route]
+      providers: [Cldr.Routes]
 
   end
   ```
@@ -231,6 +231,14 @@ defmodule Cldr.Routes do
 
   @doc false
   def cldr_backend_provider(config) do
+    quote do
+      unquote(Cldr.Routes.cldr_routes_backend_provider(config))
+      unquote(Cldr.VerifiedRoutes.cldr_backend_provider(config))
+    end
+  end
+
+  @doc false
+  def cldr_routes_backend_provider(config) do
     backend = config.backend
     gettext = config.gettext
 

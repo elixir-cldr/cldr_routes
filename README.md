@@ -45,7 +45,7 @@ defmodule MyApp.Cldr do
     locales: ["en", "fr"],
     default_locale: "en",
     gettext: MyApp.Gettext,
-    providers: [Cldr.Routes, Cldr.Router]
+    providers: [Cldr.Routes]
 
 end
 ```
@@ -145,7 +145,7 @@ This information is also used by functions in the [ex_cldr_plugs](https://hex.pm
 
 Adding
 ```elixir
-use MyApp.Cldr.Router.VerifiedRoutes,
+use MyApp.Cldr.VerifiedRoutes,
   router: MyApp.Router,
   endpoint: MyApp.Endpoint
 ```
@@ -207,11 +207,11 @@ end
 ```
 
 ### Verified Routes
-Change `Phoenix.VerifiedRoutes` to `MyApp.Cldr.Router.VerifiedRoutes`:
+Change `Phoenix.VerifiedRoutes` to `MyApp.Cldr.VerifiedRoutes`:
 ```elixir
   def verified_routes do
     quote do
-      use MyApp.Cldr.Router.VerifiedRoutes,
+      use MyApp.Cldr.VerifiedRoutes,
         endpoint: PhxCldrWeb.Endpoint,
         router: PhxCldrWeb.Router,
         statics: PhxCldrWeb.static_paths()
@@ -303,7 +303,7 @@ The package can be installed by adding `ex_cldr_routes` to your list of dependen
 ```elixir
 def deps do
   [
-    {:ex_cldr_routes, "~> 1.0.0"}
+    {:ex_cldr_routes, "~> 1.1.0"}
   ]
 end
 ```

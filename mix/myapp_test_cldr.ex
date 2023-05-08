@@ -6,6 +6,6 @@ defmodule MyApp.Test.Backend.Cldr do
     locales: ["es"],
     default_locale: "en",
     gettext: MyAppWeb.Gettext,
-    providers: [Cldr.Routes, Cldr.Router]
+    providers: [Cldr.Routes]
 
 end

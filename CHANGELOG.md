@@ -1,22 +1,16 @@
 # Changelog
 
-## Cldr Routes v2.0.0
+## Cldr Routes v1.1.0
 
-This is the changelog for Cldr Routes version 2.0.0 released on May 9th, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
-
-### Enhancements
-
-* The module `Cldr.Route` is renamed to `Cldr.Routes` to better match Phoenix naming. 
-
-* Localized routes and helpers are now packaged in one Cldr provider module and localized verified routes are packaged in a separate provider module. This change, and the change to the naming of `Cldr.Routes` means a typical povider configuration for `ex_cldr_routes` will be `providers: [Cldr.Routes, Cldr.Router]`
-
-## Cldr Routes v1.0.1
-
-This is the changelog for Cldr Routes version 1.0.1 released on May 7th, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+This is the changelog for Cldr Routes version 1.1.0 released on May 9th, 2023.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
 
 ### Bug Fixes
 
 * Fix dialyzer error. Thanks to @rubas for the report.
+
+### Deprecation
+
+* The module `Cldr.Route` is renamed to `Cldr.Routes` to better match Phoenix naming.  As a result, the provider module to be added to a Cldr backend configuration is now `Cldr.Routes`, not `Cldr.Route`.  `Cldr.Route` remains for now and if used will issue a deprecation warning. 
 
 ## Cldr Routes v1.0.0
 
