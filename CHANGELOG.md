@@ -6,6 +6,8 @@ This is the changelog for Cldr Routes version 1.1.0 released on May 9th, 2023.  
 
 ### Bug Fixes
 
+* Fix Phoenix integration which was failing to compile when using Phoenix auth. Thanks to @rubas for the report and collaboration.
+
 * Fix dialyzer error. Thanks to @rubas for the report.
 
 ### Deprecation
