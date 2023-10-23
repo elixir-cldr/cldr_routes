@@ -100,7 +100,7 @@ end
 
 ## Localized Helpers
 
-Manually constructing the localized helper names shown in the example above would be tedious. Therefore a `LocalizedHelpers` module is geenrated at compile-time. Assuming the router module is called `MyAppWeb.Router` then the full name of the localized helper module is `MyAppWeb.Router.LocalizedHelpers`.
+Manually constructing the localized helper names shown in the example above would be tedious. Therefore a `LocalizedHelpers` module is generated at compile-time. Assuming the router module is called `MyAppWeb.Router` then the full name of the localized helper module is `MyAppWeb.Router.LocalizedHelpers`.
 
 The functions on this module are the non-localized versions that should be used by applications (they delegate ultimately to the localized routes based upon the current locale).
 
