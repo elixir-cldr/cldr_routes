@@ -107,6 +107,100 @@ defmodule Cldr.VerifiedRoutes do
             end
           end
         end
+
+        defp attr!(%{function: nil}, _) do
+          raise "Cldr.VerifiedRoutes can only be used inside functions, please move your usage of ~p to functions"
+        end
+
+        defp attr!(env, :endpoint) do
+          Module.get_attribute(env.module, :endpoint) ||
+            raise """
+            expected @endpoint to be set. For dynamic endpoint resolution, use path/2 instead.
+
+            for example:
+
+                url_q(conn_or_socket, "/my-path")
+            """
+        end
+
+        defp attr!(env, name) do
+          Module.get_attribute(env.module, name) || raise "expected @#{name} module attribute to be set"
+        end
+
+
+        @doc """
+        Generates the url with localized route verification from the connection, socket, or URI and router.
+
+        See `url_q/1` for more information.
+        """
+        defmacro url_q(conn_or_socket_or_endpoint_or_uri, router, route) do
+          import Cldr.VerifiedRoutes, only: [url_q_case_clauses: 6]
+          import Cldr.Routes, only: [locales_from_unique_gettext_locales: 1]
+
+          router = Macro.expand(router, __CALLER__)
+          backend = unquote(backend)
+          gettext = unquote(gettext)
+
+          cldr_locale_names =
+            locales_from_unique_gettext_locales(unquote(backend))
+
+          case_clauses =
+            url_q_case_clauses(conn_or_socket_or_endpoint_or_uri, router, route, backend, cldr_locale_names, gettext)
+
+          quote location: :keep do
+            case unquote(backend).get_locale().cldr_locale_name do
+              unquote(case_clauses)
+            end
+          end
+        end
+
+
+        @doc ~S'''
+        Generates the router url with localized route verification.
+
+        See `sigil_q/2` for more information. Please note the missing ~q.
+
+        ## Examples
+
+            use MyApp.Cldr.VerifiedRoutes,
+              router: MyApp.Router,
+              endpoint: MyApp.Endpoint
+
+            redirect(to: url_q(conn, "/users/top"))
+
+            redirect(to: url_q(conn, "/users/#{@user}"))
+
+            ~H"""
+            <.link href={url_q(@uri, "/users?#{[page: @page]}")}>profile</.link>
+            """
+
+        The router may also be provided in cases where you want to verify routes for a
+        router other than the one passed to `use Phoenix.VerifiedRoutes`:
+
+            redirect(to: url_q(conn, OtherRouter, "/users"))
+        '''
+        defmacro url_q(route) do
+          endpoint = attr!(__CALLER__, :endpoint)
+          router = attr!(__CALLER__, :router)
+
+          quote location: :keep do
+            url_q(unquote(endpoint), unquote(router), unquote(route))
+          end
+        end
+
+
+        @doc """
+        Generates the router url with localized route verification from the connection, socket, or URI.
+
+        See `url_q/1` for more information.
+        """
+        defmacro url_q(conn_or_socket_or_endpoint_or_uri, route) do
+          router = attr!(__CALLER__, :router)
+
+          quote location: :keep do
+            url_q(unquote(conn_or_socket_or_endpoint_or_uri), unquote(router), unquote(route))
+          end
+        end
       end
     end
   end
@@ -121,6 +215,33 @@ defmodule Cldr.VerifiedRoutes do
 
           quote location: :keep do
             unquote(cldr_locale_name) -> sigil_p(unquote(translated_route), unquote(flags))
+          end
+        else
+          IO.warn(
+            "Locale #{inspect(cldr_locale_name)} has no associated gettext locale. Cannot translate #{inspect(route)}",
+            []
+          )
+
+          nil
+        end
+      else
+        {:error, {exception, reason}} -> raise exception, reason
+      end
+    end
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(&hd/1)
+  end
+
+  @doc false
+  def url_q_case_clauses(conn_or_socket_or_endpoint_or_uri, router, route, cldr_backend, cldr_locale_names, gettext_backend) do
+    for cldr_locale_name <- cldr_locale_names do
+      with {:ok, cldr_locale} <- cldr_backend.validate_locale(cldr_locale_name) do
+        if cldr_locale.gettext_locale_name do
+          translated_route =
+            Cldr.Routes.interpolate_and_translate_path(route, cldr_locale, gettext_backend)
+
+          quote location: :keep do
+            unquote(cldr_locale_name) -> url(unquote(conn_or_socket_or_endpoint_or_uri), unquote(router), sigil_p(unquote(translated_route), []))
           end
         else
           IO.warn(
