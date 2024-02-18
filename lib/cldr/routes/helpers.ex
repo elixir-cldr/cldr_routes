@@ -527,7 +527,9 @@ defmodule Cldr.Routes.LocalizedHelpers do
   def hreflang_links(url_map) when is_map(url_map) do
     links =
       for {locale, url} <- url_map do
-        {:safe, link} = PhoenixHTMLHelpers.Tag.tag(:link, href: url, rel: "alternate", hreflang: locale)
+        {:safe, link} =
+          PhoenixHTMLHelpers.Tag.tag(:link, href: url, rel: "alternate", hreflang: locale)
+
         link
       end
       |> Enum.intersperse(?\n)

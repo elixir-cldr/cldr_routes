@@ -46,6 +46,12 @@ defmodule Cldr.VerifiedRoutes do
           quote location: :keep do
             use Phoenix.VerifiedRoutes, unquote(opts)
             require unquote(gettext)
+
+            # We need to proxy url/1 so that we can support
+            # sigil_q. Phoenix.VeritifiedRoutes.url/1 requires its
+            # parameter to be a `sigil_p`.
+            import Phoenix.VerifiedRoutes, except: [url: 1, url: 2, url: 3]
+
             import unquote(backend).VerifiedRoutes, only: :macros
           end
         end
@@ -80,17 +86,20 @@ defmodule Cldr.VerifiedRoutes do
         ### Locale interpolation
 
         Some use cases call for the locale, language or territory
-        to be part of the URL. `Sigl_q` makes this easy by providing
+        to be part of the URL. `Sigil_q` makes this easy by providing
         the following interpolations:
 
-        `:locale` is replaced with cldr locale name.
-        `:language` is replaced with the cldr language code.
-        `:territory` is replaced with the cldr territory code.
+        `:locale` is replaced with CLDR locale name.
+        `:language` is replaced with the CLDR language code.
+        `:territory` is replaced with the CLDR territory code.
 
         """
         defmacro sigil_q({:<<>>, _meta, _segments} = route, flags) do
-          import Cldr.VerifiedRoutes, only: [sigil_q_case_clauses: 5]
-          import Cldr.Routes, only: [locales_from_unique_gettext_locales: 1]
+          import Cldr.VerifiedRoutes,
+            only: [sigil_q_case_clauses: 5]
+
+          import Cldr.Routes,
+            only: [locales_from_unique_gettext_locales: 1]
 
           backend = unquote(backend)
           gettext = unquote(gettext)
@@ -105,6 +114,85 @@ defmodule Cldr.VerifiedRoutes do
             case unquote(backend).get_locale().cldr_locale_name do
               unquote(case_clauses)
             end
+          end
+        end
+
+        @doc ~S'''
+        Generates the router url with localized route verification.
+
+        See `sigil_q/2` for more information.
+
+        Ultimately this macro wraps calls to the `Phoenix.VerifiedRoutes.url/1`
+        macro.
+
+        '''
+        defmacro url({:sigil_q, _, [{:<<>>, _meta, _segments}, _flags]} = route) do
+          import Cldr.VerifiedRoutes, only: [wrap_sigil_p_in_url: 1]
+
+          expanded = Macro.expand(route, __CALLER__)
+          wrap_sigil_p_in_url(expanded)
+        end
+
+        defmacro url(route) do
+          quote do
+            Phoenix.VerifiedRoutes.url(unquote(route))
+          end
+        end
+
+        @doc """
+        Generates the router url with localized route verification from the
+        connection, socket, or URI.
+
+        See `sigil_q/2` and `Phoenix.VertifiedRoutes.url/1` for more information.
+
+        Ultimately this macro wraps calls to the `Phoenix.VerifiedRoutes.url/1`
+        macro.
+
+        """
+        defmacro url(
+                   conn_or_socket_or_endpoint_or_uri,
+                   {:sigil_q, _, [{:<<>>, _meta, _segments}, _]} = route
+                 ) do
+          import Cldr.VerifiedRoutes, only: [wrap_sigil_p_in_url: 2]
+
+          expanded = Macro.expand(route, __CALLER__)
+          wrap_sigil_p_in_url(conn_or_socket_or_endpoint_or_uri, expanded)
+        end
+
+        defmacro url(conn_or_socket_or_endpoint_or_uri, route) do
+          quote do
+            Phoenix.VerifiedRoutes.url(unquote(conn_or_socket_or_endpoint_or_uri), unquote(route))
+          end
+        end
+
+        @doc """
+        Generates the router url with localized route verification from the
+        connection, socket, or URI and router.
+
+        See `sigil_q/2` and `Phoenix.VertifiedRoutes.url/1` for more information.
+
+        Ultimately this macro wraps calls to the `Phoenix.VerifiedRoutes.url/1`
+        macro.
+
+        """
+        defmacro url(
+                   conn_or_socket_or_endpoint_or_uri,
+                   router,
+                   {:sigil_q, _, [{:<<>>, _meta, _segments}, _]} = route
+                 ) do
+          import Cldr.VerifiedRoutes, only: [wrap_sigil_p_in_url: 3]
+
+          expanded = Macro.expand(route, __CALLER__)
+          wrap_sigil_p_in_url(conn_or_socket_or_endpoint_or_uri, router, expanded)
+        end
+
+        defmacro url(conn_or_socket_or_endpoint_or_uri, router, route) do
+          quote do
+            Phoenix.VerifiedRoutes.url(
+              unquote(conn_or_socket_or_endpoint_or_uri),
+              unquote(router),
+              unquote(route)
+            )
           end
         end
       end
@@ -124,7 +212,8 @@ defmodule Cldr.VerifiedRoutes do
           end
         else
           IO.warn(
-            "Locale #{inspect(cldr_locale_name)} has no associated gettext locale. Cannot translate #{inspect(route)}",
+            "Locale #{inspect(cldr_locale_name)} has no associated gettext locale. " <>
+              "Cannot translate #{inspect(route)}",
             []
           )
 
@@ -136,5 +225,60 @@ defmodule Cldr.VerifiedRoutes do
     end
     |> Enum.reject(&is_nil/1)
     |> Enum.map(&hd/1)
+  end
+
+  @doc false
+  def wrap_sigil_p_in_url(ast) do
+    Macro.postwalk(ast, fn
+      {:->, meta, [locale, sigil_p]} ->
+        url =
+          quote do
+            Phoenix.VerifiedRoutes.url(unquote(sigil_p))
+          end
+
+        {:->, meta, [locale, url]}
+
+      other ->
+        other
+    end)
+  end
+
+  @doc false
+  def wrap_sigil_p_in_url(conn_or_socket_or_endpoint_or_uri, ast) do
+    Macro.prewalk(ast, fn
+      {:->, meta, [locale, sigil_p]} ->
+        url =
+          quote do
+            Phoenix.VerifiedRoutes.url(
+              unquote(conn_or_socket_or_endpoint_or_uri),
+              unquote(sigil_p)
+            )
+          end
+
+        {:->, meta, [locale, url]}
+
+      other ->
+        other
+    end)
+  end
+
+  @doc false
+  def wrap_sigil_p_in_url(conn_or_socket_or_endpoint_or_uri, router, ast) do
+    Macro.prewalk(ast, fn
+      {:->, meta, [locale, sigil_p]} ->
+        url =
+          quote do
+            Phoenix.VerifiedRoutes.url(
+              unquote(conn_or_socket_or_endpoint_or_uri),
+              unquote(router),
+              unquote(sigil_p)
+            )
+          end
+
+        {:->, meta, [locale, url]}
+
+      other ->
+        other
+    end)
   end
 end

@@ -271,15 +271,15 @@ defmodule Cldr.Routes do
   @doc false
   def confirm_backend_has_gettext!(backend, %Cldr.Config{gettext: nil}) do
     raise ArgumentError,
-      """
-      The Cldr backend #{inspect(backend)} does not have a Gettext
-      module configured.
+          """
+          The Cldr backend #{inspect(backend)} does not have a Gettext
+          module configured.
 
-      A Gettext module must be configured in order to define localized
-      routes. In addition, translations must be provided for the Gettext
-      backend under the "routes" domain (ie in a file "routes.pot" for
-      eachconfigured Gettext locale).
-      """
+          A Gettext module must be configured in order to define localized
+          routes. In addition, translations must be provided for the Gettext
+          backend under the "routes" domain (ie in a file "routes.pot" for
+          eachconfigured Gettext locale).
+          """
   end
 
   def confirm_backend_has_gettext!(_backend, %Cldr.Config{} = _config) do

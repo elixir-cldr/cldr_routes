@@ -93,7 +93,9 @@ defmodule Cldr.Route.Test do
         assert MyApp.Router.LocalizedHelpers.not_localized_path(%Plug.Conn{}, :show, 1) ==
                  "/not_localized/1"
 
-        assert MyApp.Router.LocalizedHelpers.user_face_path(%Plug.Conn{}, :index, 1, thing: :other) ==
+        assert MyApp.Router.LocalizedHelpers.user_face_path(%Plug.Conn{}, :index, 1,
+                 thing: :other
+               ) ==
                  "/users_fr/1/faces_fr?thing=other"
       end)
     end

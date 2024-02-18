@@ -46,4 +46,23 @@ defmodule Sigil_q.Test do
     assert ~q"/users/17?admin=true&active=false" == "/users/17?admin=true&active=false"
     assert ~q"/users/17?#{[admin: true]}" == "/users/17?admin=true"
   end
+
+  test "sigil_q with url/1" do
+    assert url(~q[/users/:territory]) == "http://localhost/users/us"
+    assert url(MyApp.Endpoint, ~q[/users/:territory]) == "http://localhost/users/us"
+    assert url(MyApp.Endpoint, MyApp.Router, ~q[/users/:territory]) == "http://localhost/users/us"
+
+    MyApp.Cldr.put_locale("de")
+    assert url(~q[/users/:territory]) == "http://localhost/users_de/de"
+    assert url(MyApp.Endpoint, ~q[/users/:territory]) == "http://localhost/users_de/de"
+
+    assert url(MyApp.Endpoint, MyApp.Router, ~q[/users/:territory]) ==
+             "http://localhost/users_de/de"
+  end
+
+  test "sigil_p with url/1" do
+    assert url(~p[/users/us]) == "http://localhost/users/us"
+    assert url(MyApp.Endpoint, ~p[/users/us]) == "http://localhost/users/us"
+    assert url(MyApp.Endpoint, MyApp.Router, ~p[/users/us]) == "http://localhost/users/us"
+  end
 end
