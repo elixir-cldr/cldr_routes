@@ -122,7 +122,7 @@ defmodule Cldr.Route.Test do
       assert capture_io(:stderr, fn ->
                defmodule MyTestApp.Router do
                  use Phoenix.Router
-                 use Backend.Cldr.Routes
+                 use Backend.Cldr.Routes, helpers: true
 
                  # Nested routes to an arbitrary level (testing with 3)
                  localize do

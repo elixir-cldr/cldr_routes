@@ -248,8 +248,9 @@ defmodule Cldr.Routes do
 
         defmacro __using__(opts) do
           Cldr.Routes.confirm_backend_has_gettext!(unquote(backend))
+
           caller = __CALLER__.module
-          helpers? = Keyword.get(opts, :helpers, true)
+          helpers? = Keyword.get(opts, :helpers, Cldr.Routes.generate_helpers_by_default?())
 
           Module.put_attribute(caller, :_helpers?, helpers?)
           Module.put_attribute(caller, :_cldr_backend, unquote(backend))
@@ -261,6 +262,14 @@ defmodule Cldr.Routes do
         end
       end
     end
+  end
+
+  # Eventually, Phoenix will default to false. At that
+  # we meed to detect Pheonix behaviour and do the same.
+
+  @doc false
+  def generate_helpers_by_default? do
+    true
   end
 
   @doc false

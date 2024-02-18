@@ -12,10 +12,6 @@ This is the changelog for Cldr Routes version 1.3.0 released on February 19th, 2
 
 This is the changelog for Cldr Routes version 1.2.0 released on January 3rd, 2024.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
 
-### Planned Release 2.0.0
-
-* Following the introduction of Phoenix 1.7 and PhoenixHTML version 4.0.0, helpers are no longer generated. The next version of `:ex_cldr_routes` will also omit helper generation. It is anticpated this 2.0 release will land by the end of March 2024.
-
 ### Enhancements
 
 * Configures `:phoenix_html_helpers` as a dependency rather than the full `:phoenix` app. `:ex_cldr_routes` only uses the tag helper which is now hosted in the new library. Whilst deprecated within Phoenix, its use here is to generate `hreflang` headers.

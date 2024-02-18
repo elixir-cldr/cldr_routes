@@ -1,6 +1,6 @@
 defmodule MyApp.Router do
   use MyAppWeb, :router
-  use MyApp.Cldr.Routes
+  use MyApp.Cldr.Routes, helpers: true
 
  # Nested routes to an arbitrary level (testing with 3)
  localize do
