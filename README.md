@@ -118,10 +118,10 @@ end
 
 > #### Warning {: .warning}
 >
-> Route helpers are deprecated as of Phoenix 1.7. Like Phoenix, localization route helpers are
-> can still be generated. When using `mix phx.new my_app`, the `MyAppWeb` module will include
-> `use Phoenix.Router, helpers: false`. This is also the recommendation when using
-> `MyApp.Cldr.Router`.
+> Route helpers are deprecated in favor of verified routes as of Phoenix 1.7. Like Phoenix,
+> localization route helpers can still be generated. When using `mix phx.new my_app`,
+> the `MyAppWeb` module will include `use Phoenix.Router, helpers: false`. This is also the
+> recommendation when using `MyApp.Cldr.Router`.
 
 Manually constructing the localized helper names shown in the example above would be tedious. Therefore a `LocalizedHelpers` module is generated at compile-time. Assuming the router module is called `MyAppWeb.Router` then the full name of the localized helper module is `MyAppWeb.Router.LocalizedHelpers`.
 
