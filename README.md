@@ -19,6 +19,22 @@ Lastly, Localized Verified Routes, introduced in Phoenix 1.7, are supported and 
 
 ## Setting up
 
+### Installation
+
+The first step is to configure and install by adding `ex_cldr_routes` to your list of dependencies in `mix.exs` then run `mix deps.get`.
+
+```elixir
+def deps do
+  [
+    {:ex_cldr_routes, "~> 1.0"}
+  ]
+end
+```
+
+The docs can be found at https://hexdocs.pm/ex_cldr_routes.
+
+### Backend module configuration
+
 A `Cldr` backend module that configures an associated `gettext` backend is required. In addition, a `Gettext` backend must be configured and added to the `Cldr` configuration.
 
 Path parts (the parts between "/") are translated at compile time using `Gettext`. Therefore localization can only be applied to locales that are defined in a [gettext backend module](https://hexdocs.pm/gettext/Gettext.html#module-using-gettext) that is attached to a `Cldr` backend module.
@@ -302,18 +318,4 @@ Using the example Cldr backend that has "en" and "fr" Gettext locales then the d
 
 The `mix` tasks `gettext.extract` and `gettext.merge` can be used to support the extraction of routing segments and to create new translation locales.
 
-
-## Installation
-
-The package can be installed by adding `ex_cldr_routes` to your list of dependencies in `mix.exs`. See also the section on [setting up](#setting-up) for configuring the `Cldr` backend module and the phoenix router.
-
-```elixir
-def deps do
-  [
-    {:ex_cldr_routes, "~> 1.0"}
-  ]
-end
-```
-
-The docs can be found at https://hexdocs.pm/ex_cldr_routes.
 
