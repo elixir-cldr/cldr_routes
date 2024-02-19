@@ -66,7 +66,7 @@ defmodule MyApp.Cldr do
 end
 ```
 
-*Note* the addition of `Cldr.Routes` and `Cldr.Router` to the `:providers` configuration key is required.
+*Note* the addition of `Cldr.Routes` to the `:providers` configuration key is required.
 
 ## Define Localized Routes
 
@@ -120,8 +120,8 @@ end
 >
 > Route helpers are deprecated in favor of verified routes as of Phoenix 1.7. Like Phoenix,
 > localization route helpers can still be generated. When using `mix phx.new my_app`,
-> the `MyAppWeb` module will include `use Phoenix.Router, helpers: false`. This is also the
-> recommendation when using `MyApp.Cldr.Router`.
+> the `MyAppWeb` module will include `use Phoenix.Routes, helpers: false`. This is also the
+> recommendation when applying `use MyApp.Cldr.Routes`.
 
 Manually constructing the localized helper names shown in the example above would be tedious. Therefore a `LocalizedHelpers` module is generated at compile-time. Assuming the router module is called `MyAppWeb.Router` then the full name of the localized helper module is `MyAppWeb.Router.LocalizedHelpers`.
 
