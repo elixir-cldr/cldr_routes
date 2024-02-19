@@ -6,7 +6,7 @@ This is the changelog for Cldr Routes version 1.3.0 released on February 19th, 2
 
 ### Enhancements
 
-* Adds support for calling `url/{1,3,4}` with a `sigil_q` (localized verified route) parameter. The `Phoenix.VerifiedRoutes.url/1` macro checks that its parameter is a `sigil_p` call. Since `sigil_q` returns a `case` expression with one or more case clauses returning a `sigil_p` result, the `Phoenix.VerifiedRoutes.url/1` macro cannot be used directly. This release adds `url/{1,2,3}` to the `MyApp.Cldr.VerifiedRoutes` module so it is compatible with existing code and supports both `sigil_p` and `sigil_q` parameters. Thanks to @rigzad for the issue. Closes #16.
+* Adds support for calling `url/{1,2,3}` with a `sigil_q` (localized verified route) parameter. The `Phoenix.VerifiedRoutes.url/1` macro checks that its parameter is a `sigil_p` call. Since `sigil_q` returns a `case` expression with one or more case clauses returning a `sigil_p` result, the `Phoenix.VerifiedRoutes.url/1` macro cannot be used directly. This release adds `url/{1,2,3}` to the `MyApp.Cldr.VerifiedRoutes` module so it is compatible with existing code and supports both `sigil_p` and `sigil_q` parameters. Thanks to @rigzad for the issue. Closes #16.
 
 ## Cldr Routes v1.2.0
 
