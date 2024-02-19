@@ -100,6 +100,13 @@ end
 
 ## Localized Helpers
 
+> #### Warning {: .warning}
+>
+> Route helpers are deprecated as of Phoenix 1.7. Like Phoenix, localization route helpers are
+> can still be generated. When using `mix phx.new my_app`, the `MyAppWeb` module will include
+> `use Phoenix.Router, helpers: false`. This is also the recommendation when using
+> `MyApp.Cldr.Router`.
+
 Manually constructing the localized helper names shown in the example above would be tedious. Therefore a `LocalizedHelpers` module is generated at compile-time. Assuming the router module is called `MyAppWeb.Router` then the full name of the localized helper module is `MyAppWeb.Router.LocalizedHelpers`.
 
 The functions on this module are the non-localized versions that should be used by applications (they delegate ultimately to the localized routes based upon the current locale).
@@ -194,7 +201,7 @@ Since localized routes, route helpers and verified routes have the same function
 def router do
   quote do
     use Phoenix.Router, helpers: false
-    
+
     # Add localized routes
     use MyApp.Cldr.Routes, helpers: false
 
@@ -303,7 +310,7 @@ The package can be installed by adding `ex_cldr_routes` to your list of dependen
 ```elixir
 def deps do
   [
-    {:ex_cldr_routes, "~> 1.1.0"}
+    {:ex_cldr_routes, "~> 1.0"}
   ]
 end
 ```
