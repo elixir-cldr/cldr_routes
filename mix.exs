@@ -1,7 +1,7 @@
 defmodule CldrRoutes.MixProject do
   use Mix.Project
 
-  @version "1.3.0"
+  @version "1.3.1"
 
   def project do
     [
@@ -56,7 +56,7 @@ defmodule CldrRoutes.MixProject do
       {:phoenix_html_helpers, "~> 1.0"},
       {:phoenix_live_view, "~> 0.18", optional: true},
       {:jason, "~> 1.0"},
-      {:gettext, "~> 0.19"},
+      {:gettext, "~> 0.26"},
       {:ex_doc, "~> 0.18", only: [:release, :dev]},
       {:dialyxir, "~> 1.0", only: [:test, :dev, :release], runtime: false, optional: true}
     ]

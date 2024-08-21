@@ -256,6 +256,7 @@ defmodule Cldr.Routes do
           Module.put_attribute(caller, :_cldr_backend, unquote(backend))
 
           quote location: :keep do
+            require Gettext.Macros
             import Cldr.Routes, only: :macros
             @before_compile Cldr.Routes
           end
@@ -782,7 +783,7 @@ defmodule Cldr.Routes do
 
     quote do
       Gettext.put_locale(unquote(gettext_backend), unquote(locale))
-      unquote(gettext_backend).dgettext(unquote(domain), unquote(part))
+      Gettext.Macros.dgettext_with_backend(unquote(gettext_backend), unquote(domain), unquote(part))
     end
   end
 
