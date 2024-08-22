@@ -46,8 +46,8 @@ The following steps should be followed to set up the configuration for localized
 The first step is to ensure there is a configured `Gettext` backend module:
 
 ```elixir
-defmodule MyAppWeb.Gettext do
-  use Gettext, otp_app: :my_app
+defmodule MyApp.Gettext do
+  use Gettext.Backend, otp_app: :my_app
 end
 ```
 
@@ -317,5 +317,3 @@ Using the example Cldr backend that has "en" and "fr" Gettext locales then the d
             └── routes.po
 
 The `mix` tasks `gettext.extract` and `gettext.merge` can be used to support the extraction of routing segments and to create new translation locales.
-
-

@@ -162,9 +162,8 @@ defmodule Cldr.Routes do
   defp view_helpers do
     quote do
       ...
-
+      use Gettext, backend: MyApp.Gettext
       import MyAppWeb.ErrorHelpers
-      import MyAppWeb.Gettext
       alias MyAppWeb.Router.Helpers, as: Routes
     end
   end
@@ -175,8 +174,8 @@ defmodule Cldr.Routes do
     quote do
       ...
 
+      use Gettext, backend: MyApp.Gettext
       import MyAppWeb.ErrorHelpers
-      import MyAppWeb.Gettext
       alias MyAppWeb.Router.LocalizedHelpers, as: Routes
     end
   end
