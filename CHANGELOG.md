@@ -2,11 +2,11 @@
 
 ## Cldr Routes v1.3.1
 
-This is the changelog for Cldr Routes version 1.3.1 released on August 22nd, 2024.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+This is the changelog for Cldr Routes version 1.3.1 released on August 23rd, 2024.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
 
 ### Bug Fixes
 
-* Requires [Gettext version 0.26](https://hex.pm/packages/gettext/0.26.0) or later since that version has an incompatible API with previsous versions and we wish to avoid more conditional code.
+* Requires [Gettext version 0.26](https://hex.pm/packages/gettext/0.26.0) or later since that version has an incompatible API with previsous versions and we wish to avoid more conditional code. Thanks to @krns for the PR to align the documentation and examples as well.
 
 ## Cldr Routes v1.3.0
 
