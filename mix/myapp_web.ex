@@ -20,9 +20,8 @@ defmodule MyAppWeb do
   def controller do
     quote do
       use Phoenix.Controller, namespace: MyAppWeb
-
+      use Gettext, backend: MyApp.Gettext
       import Plug.Conn
-      import MyAppWeb.Gettext
       alias MyAppWeb.Router.Helpers, as: Routes
     end
   end
@@ -80,7 +79,7 @@ defmodule MyAppWeb do
   def channel do
     quote do
       use Phoenix.Channel
-      import MyAppWeb.Gettext
+      use Gettext, backend: MyApp.Gettext
     end
   end
 
