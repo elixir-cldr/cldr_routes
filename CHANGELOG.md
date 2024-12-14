@@ -8,7 +8,7 @@ This is the changelog for Cldr Routes version 1.3.2 released on December 15th, 2
 
 * Relax LiveView support to include 1.x.
 
-* Fix unquoting invalid AST for Elixir 1.18
+* Fix unquoting invalid AST for Elixir 1.18.
 
 ## Cldr Routes v1.3.1
 
@@ -16,7 +16,7 @@ This is the changelog for Cldr Routes version 1.3.1 released on August 23rd, 202
 
 ### Bug Fixes
 
-* Requires [Gettext version 0.26](https://hex.pm/packages/gettext/0.26.0) or later since that version has an incompatible API with previsous versions and we wish to avoid more conditional code. Thanks to @krns for the PR to align the documentation and examples as well.
+* Requires [Gettext version 0.26](https://hex.pm/packages/gettext/0.26.0) or later since that version has an incompatible API with previous versions and we wish to avoid more conditional code. Thanks to @krns for the PR to align the documentation and examples as well.
 
 ## Cldr Routes v1.3.0
 
