@@ -54,7 +54,7 @@ defmodule CldrRoutes.MixProject do
     [
       {:ex_cldr, "~> 2.37"},
       {:phoenix_html_helpers, "~> 1.0"},
-      {:phoenix_live_view, "~> 0.18", optional: true},
+      {:phoenix_live_view, "~> 0.18 or ~> 1.0", optional: true},
       {:jason, "~> 1.0"},
       {:gettext, "~> 0.26"},
       {:ex_doc, "~> 0.18", only: [:release, :dev]},

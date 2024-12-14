@@ -432,7 +432,7 @@ defmodule Cldr.Routes do
       with {:ok, cldr_locale} <- cldr_backend.validate_locale(cldr_locale_name) do
         if cldr_locale.gettext_locale_name do
           quote do
-            localize(unquote(cldr_locale), unquote(route))
+            localize(unquote(Macro.escape(cldr_locale)), unquote(route))
           end
         else
           warn_no_gettext_locale(cldr_locale_name, route)
@@ -497,7 +497,10 @@ defmodule Cldr.Routes do
 
   defp do_localize(field, cldr_locale_name, cldr_backend, {verb, meta, [path | args]} = route) do
     gettext_backend = cldr_backend.__cldr__(:config).gettext
-    {:ok, cldr_locale} = cldr_backend.validate_locale(cldr_locale_name)
+
+    cldr_locale = locale_from_cldr_locale_name(cldr_locale_name, cldr_backend)
+    cldr_locale_name = cldr_locale.cldr_locale_name
+
     {original_path, _} = escape_interpolation(path) |> Code.eval_quoted()
 
     if cldr_locale.gettext_locale_name do
@@ -549,6 +552,16 @@ defmodule Cldr.Routes do
       other ->
         other
     end)
+  end
+
+  defp locale_from_cldr_locale_name({:%{}, _, _} = ast, _cldr_backend) do
+    {locale, []} = Code.eval_quoted(ast)
+    locale
+  end
+
+  defp locale_from_cldr_locale_name(binary, cldr_backend) do
+    {:ok, cldr_locale} = cldr_backend.validate_locale(binary)
+    cldr_locale
   end
 
   @meta_locales [:und, :en_001]

@@ -1,5 +1,15 @@
 # Changelog
 
+## Cldr Routes v1.3.2
+
+This is the changelog for Cldr Routes version 1.3.2 released on December 15th, 2024.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+
+### Bug Fixes
+
+* Relax LiveView support to include 1.x.
+
+* Fix unquoting invalid AST for Elixir 1.18
+
 ## Cldr Routes v1.3.1
 
 This is the changelog for Cldr Routes version 1.3.1 released on August 23rd, 2024.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
