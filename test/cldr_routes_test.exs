@@ -1,6 +1,6 @@
 defmodule Cldr.Route.Test do
   use ExUnit.Case
-  use Plug.Test
+  import Plug.Test
   import Cldr.Route.TestHelper
   import ExUnit.CaptureIO
 
