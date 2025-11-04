@@ -4,9 +4,13 @@
 
 This is the changelog for Cldr Routes version 1.4.0 released on November 4th, 2025.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
 
+### Possible breaking change
+
+* `cldr_routes` matches a CLDR locale name (as used in `ex_cldr`) to a `gettext` locale name. For [ex_cldr v2.44.0](https://hex.pm/packages/ex_cldr/2.44.0) that matching process is more flexible and more compliant with the [CLDR language matching algorithm](https://www.unicode.org/reports/tr35/tr35.html#LanguageMatching). As a result, it is possible that some locales may match to a different gettext locale name than in previous versions. And therefore some route helpers may resolve differently as well.
+
 ### Enhancements
 
-* Updated to [CLDR 48](https://cldr.unicode.org/downloads/cldr-48)
+* Updated to [CLDR 48](https://cldr.unicode.org/downloads/cldr-48).
 
 * Adds attribution of the original idea and implementation to [Bart Otten](https://github.com/BartOtten).
 
