@@ -1,6 +1,6 @@
 defmodule Cldr.Route.Test do
   use ExUnit.Case
-  use Plug.Test
+  import Plug.Test
   import Cldr.Route.TestHelper
   import ExUnit.CaptureIO
 
@@ -109,11 +109,11 @@ defmodule Cldr.Route.Test do
     end
 
     test "that helpers match on the gettext locale name" do
-      {:ok, locale} = MyApp.Cldr.validate_locale("en-GB")
+      {:ok, locale} = MyApp.Cldr.validate_locale("en-VI")
       Cldr.put_locale(locale)
       assert MyApp.Router.LocalizedHelpers.user_path(%Plug.Conn{}, :index) == "/users"
 
-      {:ok, locale} = MyApp.Cldr.validate_locale("en-AU")
+      {:ok, locale} = MyApp.Cldr.validate_locale("en-CA")
       Cldr.put_locale(locale)
       assert MyApp.Router.LocalizedHelpers.user_path(%Plug.Conn{}, :index) == "/users"
     end

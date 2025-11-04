@@ -1,9 +1,11 @@
+require PageController
+
 defmodule MyApp.Router do
   use MyAppWeb, :router
   use MyApp.Cldr.Routes, helpers: true
 
- # Nested routes to an arbitrary level (testing with 3)
- localize do
+  # Nested routes to an arbitrary level (testing with 3)
+  localize do
     get "/pages/:page", PageController, :show, assigns: %{key: :value}
     resources "/users", UserController do
       resources "/faces", FaceController, except: [:delete] do
@@ -13,19 +15,19 @@ defmodule MyApp.Router do
   end
 
   # Interpolation
-  localize do
+  localize [:en, :fr, :de] do
     get "/#{locale}/locale/pages/:page", PageController, :show, as: "with_locale"
     get "/#{language}/language/pages/:page", PageController, :show, as: "with_language"
     get "/#{territory}/territory/pages/:page", PageController, :show, as: "with_territory"
   end
 
   # Specific set of locales
-  localize [:en, :fr] do
+  localize [:en, :fr, :de] do
     resources "/comments", PageController, except: [:delete]
   end
 
   # Test all other verbs
-  localize do
+  localize [:en, :fr, :de] do
     patch "/pages/:page", PageController, :update
     delete "/pages/:page", PageController, :delete
     post "/pages/:page", PageController, :create
@@ -45,11 +47,11 @@ defmodule MyApp.Router do
   end
 
   localize "fr" do
-    live "/columns/:page", PageController
+    get "/columns/:page", PageController
   end
 
   localize "fr" do
-    live "/pages/columns/:page", PageController, :index, as: :article
+    get "/pages/columns/:page", PageController, :index, as: :article
   end
 
   # Live routes
@@ -64,7 +66,7 @@ defmodule MyApp.Router do
   live_session :default do
     scope "/", MyAppWeb do
       localize do
-        live("/#{locale}", HomeLive)
+        live("/#{locale}", HomeLiveController)
       end
     end
   end

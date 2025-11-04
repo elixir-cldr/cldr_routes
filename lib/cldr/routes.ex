@@ -1,7 +1,6 @@
 defmodule Cldr.Routes do
   @moduledoc """
-  Generate localized route generation, locaverified routes
-  and route helper modules.
+  Generate localized routes and route helper modules.
 
   This module when `use`d , provides a `localize/1`
   macro that is designed to wrap the standard Phoenix

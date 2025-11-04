@@ -33,46 +33,46 @@
 #: mix/myapp_router.ex:25
 #: mix/myapp_router.ex:34
 msgid "pages"
-msgstr ""
+msgstr "pages"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 msgid "users"
-msgstr ""
+msgstr "users"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 msgid "faces"
-msgstr ""
+msgstr "face"
 
 msgid "eyes"
-msgstr ""
+msgstr "eyes"
 
 msgid "edit"
-msgstr ""
+msgstr "edit"
 
 msgid "objects"
-msgstr ""
+msgstr "objects"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:34
 msgid "chapters"
-msgstr ""
+msgstr "chapters"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:20
 #: mix/myapp_router.ex:20
 msgid "comments"
-msgstr ""
+msgstr "comments"
 
 #, elixir-autogen, elixir-format
 #: mix/myapp_router.ex:44
 msgid "columns"
-msgstr ""
+msgstr "columns"
 
 #, elixir-autogen, elixir-format
 #: mix/myapp_router.ex:39

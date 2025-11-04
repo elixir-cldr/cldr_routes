@@ -6,9 +6,9 @@ This is the changelog for Cldr Routes version 1.3.2 released on December 15th, 2
 
 ### Bug Fixes
 
-* Relax LiveView support to include 1.x.
+* Update LiveView support to include `"~> 1.0"`.
 
-* Fix unquoting invalid AST for Elixir 1.18.
+* Fix unquoting invalid AST for Elixir 1.18 and later.
 
 ## Cldr Routes v1.3.1
 

@@ -1,7 +1,7 @@
 defmodule CldrRoutes.MixProject do
   use Mix.Project
 
-  @version "1.3.2"
+  @version "1.4.0"
 
   def project do
     [
@@ -52,11 +52,14 @@ defmodule CldrRoutes.MixProject do
 
   defp deps do
     [
-      {:ex_cldr, "~> 2.37"},
+      # {:ex_cldr, "~> 2.44"},
+      {:ex_cldr, github: "elixir-cldr/cldr48"},
+
       {:phoenix_html_helpers, "~> 1.0"},
-      {:phoenix_live_view, "~> 0.18 or ~> 1.0", optional: true},
+      {:phoenix_live_view, "~> 1.0", optional: true},
+
       {:jason, "~> 1.0"},
-      {:gettext, "~> 0.26"},
+      {:gettext, "~> 0.26 or ~> 1.0"},
       {:ex_doc, "~> 0.18", only: [:release, :dev]},
       {:dialyxir, "~> 1.0", only: [:test, :dev, :release], runtime: false, optional: true}
     ]

@@ -15,7 +15,9 @@ As a result, users can enter URLs using localised terms which can enhance user e
 
 Similarly, localised path and URL helpers are generated that wrap the standard [Phoenix helpers](https://hexdocs.pm/phoenix/routing.html#path-helpers) to support generating localised paths and URLs.
 
-Lastly, Localized Verified Routes, introduced in Phoenix 1.7, are supported and their use encouraged in preference to URL Helpers. Localized Verified Routes are specified with the `~q` sigil in the same manner as Phoenix Verified Routes `~p`.
+Localized Verified Routes, introduced in Phoenix 1.7, are supported and their use encouraged in preference to URL Helpers. Localized Verified Routes are specified with the `~q` sigil in the same manner as Phoenix Verified Routes `~p`.
+
+This library was inspired by the work originally done by @BartOtten on Phx Alt Routes and which is now represented in the much enhanced  [RouteEx](https://hex.pm/packages/routex).
 
 ## Setting up
 

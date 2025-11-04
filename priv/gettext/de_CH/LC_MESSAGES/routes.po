@@ -8,7 +8,7 @@
 ## to merge POT files into PO files.
 msgid ""
 msgstr ""
-"Language: de\n"
+"Language: de_CH\n"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:6
@@ -45,56 +45,56 @@ msgstr ""
 #: mix/myapp_router.ex:25
 #: mix/myapp_router.ex:34
 msgid "pages"
-msgstr "pages_de"
+msgstr "pages_de-ch"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 msgid "users"
-msgstr "users_de"
+msgstr "users_de-ch"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 #: mix/myapp_router.ex:6
 msgid "faces"
-msgstr "faces_de"
+msgstr "faces_de-ch"
 
 msgid "eyes"
-msgstr "eyes_de"
+msgstr "eyes_de-ch"
 
 msgid "edit"
-msgstr "edit_de"
+msgstr "edit_de-ch"
 
 msgid "objects"
-msgstr "objects_de"
+msgstr "objects_de-ch"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:34
 msgid "chapters"
-msgstr "chapters_de"
+msgstr "chapters_de-ch"
 
 #, elixir-autogen
 #: mix/myapp_router.ex:20
 #: mix/myapp_router.ex:20
 msgid "comments"
-msgstr "comments_de"
+msgstr "comments_de-ch"
 
 #, elixir-autogen, elixir-format
 #: mix/myapp_router.ex:44
 msgid "columns"
-msgstr "columns_de"
+msgstr "columns-de-ch"
 
 #, elixir-autogen, elixir-format
 #: mix/myapp_router.ex:39
 msgid "kapitel"
-msgstr "kapitel_de"
+msgstr "kapitel-de-ch"
 
 #, elixir-autogen, elixir-format
 #: mix/myapp_router.ex:39
 msgid "seite"
-msgstr ""
+msgstr "seite-de-ch"
 
 #, elixir-autogen, elixir-format
 #: mix/myapp_router.ex:14
@@ -138,7 +138,7 @@ msgstr ""
 #: mix/myapp_router.ex:50
 #: mix/myapp_router.ex:50
 msgid "login"
-msgstr "anmeldung"
+msgstr "anmeldung=de-ch"
 
 #, elixir-autogen, elixir-format
 #: mix/myapp_router.ex:14
