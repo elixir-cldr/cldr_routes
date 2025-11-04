@@ -1,4 +1,4 @@
-require Cldr.Route
+require Cldr.Routes
 require MyApp.Cldr
 
 defmodule MyApp.Test.Backend.Cldr do
