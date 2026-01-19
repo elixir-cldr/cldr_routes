@@ -24,3 +24,6 @@ ex_cldr_routes-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Mise
+mise.toml
