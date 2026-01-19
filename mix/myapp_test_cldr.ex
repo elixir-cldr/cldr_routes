@@ -1,5 +1,5 @@
+{:module, _} = Code.ensure_compiled(MyApp.Cldr)
 require Cldr.Routes
-require MyApp.Cldr
 
 defmodule MyApp.Test.Backend.Cldr do
   use Cldr,

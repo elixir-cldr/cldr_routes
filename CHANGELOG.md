@@ -1,5 +1,13 @@
 # Changelog
 
+## Cldr Routes v1.5.0
+
+This is the changelog for Cldr Routes version 1.5.0 released on January 19th, 2026.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+
+### Bug Fixes
+
+* Fix compiler warnings on Elixir 1.20.
+
 ## Cldr Routes v1.4.0
 
 This is the changelog for Cldr Routes version 1.4.0 released on November 4th, 2025.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
