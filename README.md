@@ -32,7 +32,7 @@ The first step is to configure and install by adding `ex_cldr_routes` to your li
 ```elixir
 def deps do
   [
-    {:ex_cldr_routes, "~> 1.0"}
+    {:ex_cldr_routes, "~> 1.5"}
   ]
 end
 ```
