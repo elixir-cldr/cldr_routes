@@ -65,7 +65,11 @@ defmodule Cldr.Routes.LocalizedHelpers do
       helper_fun_name = strip_locale(route.helper)
       {_bins, vars} = :lists.unzip(exprs.binding)
 
-      quote do
+      # generated: true suppresses Elixir 1.20+ clause-redundancy warnings
+      # in the consuming module — multiple route groups can produce identical
+      # arity-N def heads for the same helper name, which the type checker
+      # flags but is harmless (the bodies dispatch on the locale).
+      quote generated: true do
         def unquote(:"#{helper_fun_name}_#{suffix}")(
               conn_or_endpoint,
               plug_opts,
@@ -113,7 +117,7 @@ defmodule Cldr.Routes.LocalizedHelpers do
         !localized_route?(route) do
       {_bins, vars} = :lists.unzip(exprs.binding)
 
-      quote do
+      quote generated: true do
         def unquote(:"#{route.helper}_#{suffix}")(
               conn_or_endpoint,
               plug_opts,
@@ -157,7 +161,7 @@ defmodule Cldr.Routes.LocalizedHelpers do
         helper_fun_name != route.helper do
       {_bins, vars} = :lists.unzip(exprs.binding)
 
-      quote do
+      quote generated: true do
         @doc false
         def helper(
               unquote(helper_fun_name),
@@ -207,7 +211,7 @@ defmodule Cldr.Routes.LocalizedHelpers do
           binding = List.duplicate({:_, [], nil}, length)
           arity = length + 2
 
-          quote do
+          quote generated: true do
             def helper(
                   unquote(proxy_helper),
                   suffix,
@@ -237,7 +241,7 @@ defmodule Cldr.Routes.LocalizedHelpers do
           binding = List.duplicate({:_, [], nil}, length)
           arity = length + 2
 
-          quote do
+          quote generated: true do
             def helper(
                   unquote(proxy_helper),
                   suffix,

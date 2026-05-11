@@ -84,8 +84,6 @@ defmodule MyAppWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components
-      import MyAppWeb.CoreComponents
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS
