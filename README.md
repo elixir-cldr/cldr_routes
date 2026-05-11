@@ -214,6 +214,56 @@ case MyApp.Cldr.get_locale().cldr_locale_name do
 end
 ```
 
+### Rendering a path or URL in a specific locale
+
+`sigil_q` dispatches on the *current* process locale set by
+`MyApp.Cldr.put_locale/1`. Sometimes you need to render a link in a
+different locale without changing the process locale — for example,
+emitting a language switcher that lists the same page in every
+configured locale.
+
+`path_for/2` and `url_for/2` take the target locale as an explicit
+first argument:
+
+```elixir
+# In a template, with @locale bound from the request or session:
+<.link href={path_for(@locale, "/users")}>Users</.link>
+
+# Render every configured locale in one pass (language switcher):
+<%= for locale <- [:en, :fr, :de] do %>
+  <a href={path_for(locale, "/users")}><%= locale %></a>
+<% end %>
+
+# url_for/2 returns a full URL via Phoenix.VerifiedRoutes.url/1:
+url_for(:fr, "/users")
+#=> "http://localhost:4000/users_fr"
+```
+
+The locale argument can be a literal atom or any runtime expression
+that evaluates to a configured locale name. The route accepts the same
+form as `sigil_q` — a string literal with optional `#{...}`
+interpolations and `:locale` / `:language` / `:territory`
+substitutions.
+
+#### Alternative: temporarily switch the process locale
+
+For ad-hoc cases where it's more convenient to run a block of code in a
+specific locale (perhaps because you also want other locale-sensitive
+formatting like numbers or dates), `Cldr.with_locale/3` lets you scope
+the change and restore the previous locale afterwards:
+
+```elixir
+Cldr.with_locale(:fr, MyApp.Cldr, fn ->
+  ~q"/users"
+end)
+#=> "/users_fr"
+```
+
+Use `path_for/2` for single-call locale forcing; use
+`Cldr.with_locale/3` when you want a whole block (including non-route
+operations like `Cldr.Number.to_string/2`) to run under a temporary
+locale.
+
 ## Phoenix MyWebApp configuration
 
 Since localized routes, route helpers and verified routes have the same function and API as the standard Phoenix equivalent modules it is possible to update the generated Phoenix configuration. Assuming the presence of `myapp_web.ex` defining the module `MyAppWeb` then the following changes should be considered in the `my_web_app.ex` file:

@@ -1,5 +1,13 @@
 # Changelog
 
+## Cldr Routes v1.6.0
+
+This is the changelog for Cldr Routes version 1.6.0 released on May 11th, 2026.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)
+
+### Enhancements
+
+* Add `path_for/2` and `url_for/2` to the generated `MyApp.Cldr.VerifiedRoutes` module to render a path or URL in an explicit locale without changing the process-wide locale, supporting use cases like language switchers in a single template pass. Thanks to @nicolasblanco for the report. Closes #18.
+
 ## Cldr Routes v1.5.0
 
 This is the changelog for Cldr Routes version 1.5.0 released on January 19th, 2026.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_routes/tags)

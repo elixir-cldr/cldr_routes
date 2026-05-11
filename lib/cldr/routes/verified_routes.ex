@@ -195,8 +195,118 @@ defmodule Cldr.VerifiedRoutes do
             )
           end
         end
+
+        @doc ~S'''
+        Generates a localized verified path in a specific locale.
+
+        Unlike `sigil_q/2`, which dispatches on the *current* locale
+        (`Cldr.get_locale/0`), `path_for/2` lets the caller force a
+        particular locale at the call site without changing the
+        process-wide locale. This is useful when rendering links in
+        multiple locales within a single template (for example, a
+        language switcher).
+
+        ### Arguments
+
+        * `locale` is any locale name configured in the Cldr backend.
+          May be a literal atom or a runtime expression.
+
+        * `route` is a string literal route (with optional `#{...}`
+          interpolations), as accepted by `sigil_q/2`.
+
+        ### Returns
+
+        * A translated `Phoenix.VerifiedRoutes`-compatible path.
+
+        ### Examples
+
+            iex> path_for(:fr, "/users")
+            "/utilisateurs"
+
+            iex> for locale <- [:en, :fr] do
+            ...>   {locale, path_for(locale, "/users")}
+            ...> end
+            [en: "/users", fr: "/utilisateurs"]
+
+        '''
+        defmacro path_for(locale, route) do
+          import Cldr.VerifiedRoutes,
+            only: [sigil_q_case_clauses: 5, normalize_route_ast: 1]
+
+          import Cldr.Routes,
+            only: [locales_from_unique_gettext_locales: 1]
+
+          backend = unquote(backend)
+          gettext = unquote(gettext)
+          cldr_locale_names = locales_from_unique_gettext_locales(backend)
+          route_ast = normalize_route_ast(route)
+
+          case_clauses =
+            sigil_q_case_clauses(route_ast, [], backend, cldr_locale_names, gettext)
+
+          quote location: :keep do
+            case unquote(locale) do
+              unquote(case_clauses)
+            end
+          end
+        end
+
+        @doc ~S'''
+        Generates a localized verified URL in a specific locale.
+
+        Like `path_for/2` but returns a full URL via
+        `Phoenix.VerifiedRoutes.url/1`.
+
+        ### Arguments
+
+        * `locale` is any locale name configured in the Cldr backend.
+
+        * `route` is a string literal route accepted by `sigil_q/2`.
+
+        '''
+        defmacro url_for(locale, route) do
+          import Cldr.VerifiedRoutes,
+            only: [sigil_q_case_clauses: 5, normalize_route_ast: 1, wrap_sigil_p_in_url: 1]
+
+          import Cldr.Routes,
+            only: [locales_from_unique_gettext_locales: 1]
+
+          backend = unquote(backend)
+          gettext = unquote(gettext)
+          cldr_locale_names = locales_from_unique_gettext_locales(backend)
+          route_ast = normalize_route_ast(route)
+
+          case_clauses =
+            sigil_q_case_clauses(route_ast, [], backend, cldr_locale_names, gettext)
+
+          case_expr =
+            quote location: :keep do
+              case unquote(locale) do
+                unquote(case_clauses)
+              end
+            end
+
+          wrap_sigil_p_in_url(case_expr)
+        end
       end
     end
+  end
+
+  @doc false
+  # Normalises the second arg of `path_for/2`/`url_for/2`. Accepts either a
+  # plain string literal (passed straight through the macro as a binary) or
+  # an interpolated-string AST (`{:<<>>, _, _}`) and returns the AST shape
+  # expected by `sigil_q_case_clauses/5`.
+  def normalize_route_ast(route) when is_binary(route) do
+    {:<<>>, [], [route]}
+  end
+
+  def normalize_route_ast({:<<>>, _, _} = ast), do: ast
+
+  def normalize_route_ast(other) do
+    raise ArgumentError,
+          "path_for/2 and url_for/2 expect a string literal route " <>
+            "(optionally with \#{...} interpolations); got: #{Macro.to_string(other)}"
   end
 
   @doc false
