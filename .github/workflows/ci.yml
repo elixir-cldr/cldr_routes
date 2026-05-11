@@ -36,7 +36,7 @@ jobs:
           - otp: "28.3.1"
             elixir: "1.19.5-otp-28"
           - otp: "28.3.1"
-            elixir: "1.20.0-rc.1-otp-28"
+            elixir: "1.20.0-rc.4-otp-28"
             lint: true
     steps:
     # Step: Setup Elixir + Erlang image as the base.
@@ -53,7 +53,7 @@ jobs:
     # Step: Define how to cache deps. Restores existing cache if present.
     - name: Cache deps
       id: cache-deps
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       env:
         cache-name: cache-elixir-deps
       with:
@@ -67,7 +67,7 @@ jobs:
     # project's downloaded deps every run.
     - name: Cache compiled build
       id: cache-build
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       env:
         cache-name: cache-compiled-build
       with:
@@ -97,6 +97,13 @@ jobs:
     - name: Run tests
       run: mix test
 
-    # Step: Execute dialyzer.
+    # Step: Execute dialyzer. Only on the lint matrix entry (latest
+    # Elixir + OTP) and in :dev env so the analysis matches local
+    # `mix dialyzer` runs. Running across every matrix entry under
+    # MIX_ENV=test produces many spurious warnings from differences in
+    # Elixir/OTP versions and test-only deps.
     - name: Run dialyzer
-      run: mix dialyzer
+      if: matrix.lint
+      env:
+        MIX_ENV: dev
+      run: mix deps.get && mix dialyzer

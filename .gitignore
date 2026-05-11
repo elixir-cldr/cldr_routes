@@ -27,3 +27,5 @@ ex_cldr_routes-*.tar
 
 # Mise
 mise.toml
+
+.DS_Store
